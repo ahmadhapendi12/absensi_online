@@ -8,6 +8,7 @@ use App\Http\Controllers\Superadmin\KaryawanController;
 use App\Http\Controllers\Superadmin\CabangController;
 use App\Http\Controllers\Superadmin\PengajuanController as SuperadminPengajuan;
 use App\Http\Controllers\Superadmin\LaporanController;
+use App\Http\Controllers\Superadmin\JadwalKaryawanController;
 
 // Import Controller Karyawan
 use App\Http\Controllers\Karyawan\PresensiController;
@@ -49,15 +50,24 @@ Route::middleware(['auth'])->group(function () {
         // Rute Karyawan
         Route::get('/karyawan', [KaryawanController::class, 'index'])->name('karyawan.index');
         Route::post('/karyawan', [KaryawanController::class, 'store'])->name('karyawan.store');
+        Route::put('/karyawan/{id}', [KaryawanController::class, 'update'])->name('karyawan.update');
+        Route::delete('/karyawan/{id}', [KaryawanController::class, 'destroy'])->name('karyawan.destroy');
         
         // Rute Cabang/Lokasi GPS
         Route::get('/cabang', [CabangController::class, 'index'])->name('cabang.index');
         Route::post('/cabang', [CabangController::class, 'store'])->name('cabang.store');
+        Route::delete('/cabang/{id}', [CabangController::class, 'destroy'])->name('cabang.destroy');
+
+        // Rute Jadwal Karyawan
+        Route::get('/jadwal', [JadwalKaryawanController::class, 'index'])->name('jadwal.index');
+        Route::post('/jadwal', [JadwalKaryawanController::class, 'store'])->name('jadwal.store');
+        Route::delete('/jadwal/{id}', [JadwalKaryawanController::class, 'destroy'])->name('jadwal.destroy');
 
         // Rute Approval Pengajuan & Lembur
         Route::get('/pengajuan', [SuperadminPengajuan::class, 'index'])->name('pengajuan.index');
         Route::post('/pengajuan/izin/{id}/approve', [SuperadminPengajuan::class, 'approveIzin'])->name('pengajuan.izin.approve');
         Route::post('/pengajuan/lembur/{id}/approve', [SuperadminPengajuan::class, 'approveLembur'])->name('pengajuan.lembur.approve');
+        Route::post('/pengajuan/lembur/{id}/reject', [SuperadminPengajuan::class, 'rejectLembur'])->name('pengajuan.lembur.reject');
 
         // Rute Laporan & Cetak PDF
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
@@ -79,6 +89,8 @@ Route::middleware(['auth'])->group(function () {
         // Rute Pengajuan
         Route::get('/pengajuan', [KaryawanPengajuan::class, 'index'])->name('pengajuan.index');
         Route::post('/pengajuan/izin', [KaryawanPengajuan::class, 'storeIzin'])->name('pengajuan.izin.store');
+        Route::get('/pengajuan/lembur', [KaryawanPengajuan::class, 'lembur'])->name('pengajuan.lembur');
+        Route::post('/pengajuan/lembur', [KaryawanPengajuan::class, 'storeLembur'])->name('pengajuan.lembur.store');
 
         // Rute Profil
         Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');

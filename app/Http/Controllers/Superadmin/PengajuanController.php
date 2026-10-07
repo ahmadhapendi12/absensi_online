@@ -29,4 +29,11 @@ class PengajuanController extends Controller
         $lembur->update(['status_pengajuan' => 'Disetujui', 'disetujui_oleh' => Auth::id()]);
         return back()->with('success', 'Lembur disetujui.');
     }
+
+    public function rejectLembur($id)
+    {
+        $lembur = Lembur::findOrFail($id);
+        $lembur->update(['status_pengajuan' => 'Ditolak', 'disetujui_oleh' => Auth::id()]);
+        return back()->with('success', 'Lembur ditolak.');
+    }
 }

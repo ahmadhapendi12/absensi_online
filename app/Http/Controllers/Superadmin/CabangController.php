@@ -25,4 +25,11 @@ class CabangController extends Controller
         CabangKantor::create($request->all());
         return back()->with('success', 'Cabang baru berhasil disimpan.');
     }
+
+    public function destroy($id)
+    {
+        $cabang = CabangKantor::findOrFail($id);
+        $cabang->delete();
+        return back()->with('success', 'Cabang berhasil dihapus.');
+    }
 }

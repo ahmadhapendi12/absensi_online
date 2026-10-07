@@ -7,6 +7,11 @@
     <h1 class="font-bold text-lg text-gray-800">Izin / Sakit / Cuti</h1>
 </div>
 
+<div class="flex border-b border-gray-200 bg-white">
+    <a href="{{ route('karyawan.pengajuan.index') }}" class="flex-1 py-3 text-center text-sm font-bold text-red-600 border-b-2 border-red-600">Izin / Sakit</a>
+    <a href="{{ route('karyawan.pengajuan.lembur') }}" class="flex-1 py-3 text-center text-sm font-semibold text-gray-500 hover:text-red-600">Lembur</a>
+</div>
+
 <div class="p-5 mb-6">
     @if(session('success'))
         <div class="bg-green-50 text-green-600 p-4 rounded-xl mb-6 text-sm font-semibold border border-green-200">
@@ -54,8 +59,8 @@
         </div>
 
         <!-- Tombol Submit -->
-        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 active:scale-95 transition-all mt-4">
-            Kirim Pengajuan
+        <button type="submit" class="w-full bg-red-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-red-700 active:scale-95 transition-all mt-4">
+            Kirim Pengajuan Izin
         </button>
     </form>
 </div>

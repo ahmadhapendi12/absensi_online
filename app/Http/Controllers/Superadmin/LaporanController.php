@@ -4,39 +4,54 @@ namespace App\Http\Controllers\Superadmin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Absensi;
+use App\Models\CabangKantor;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 
 class LaporanController extends Controller
 {
-    // 1. Fungsi untuk menampilkan data di halaman Web Superadmin
     public function index(Request $request)
     {
-        // Default menampilkan data bulan ini
-        $bulanIni = Carbon::now()->month;
-        $tahunIni = Carbon::now()->year;
+        $cabangs = CabangKantor::all();
+        
+        $tanggalMulai = $request->input('tanggal_mulai', Carbon::now()->startOfMonth()->toDateString());
+        $tanggalSelesai = $request->input('tanggal_selesai', Carbon::now()->endOfMonth()->toDateString());
+        $cabangId = $request->input('cabang_id');
 
-        $dataAbsensi = Absensi::with(['user', 'jadwal.shift'])
-            ->whereMonth('tanggal', $bulanIni)
-            ->whereYear('tanggal', $tahunIni)
-            ->orderBy('tanggal', 'desc')
-            ->get();
+        $query = Absensi::with(['user.cabang', 'jadwal.shift'])
+            ->whereBetween('tanggal', [$tanggalMulai, $tanggalSelesai])
+            ->orderBy('tanggal', 'desc');
 
-        return view('superadmin.laporan', compact('dataAbsensi'));
+        if ($cabangId) {
+            $query->whereHas('user', function($q) use ($cabangId) {
+                $q->where('cabang_id', $cabangId);
+            });
+        }
+
+        $dataAbsensi = $query->get();
+
+        return view('superadmin.laporan', compact('dataAbsensi', 'cabangs', 'tanggalMulai', 'tanggalSelesai', 'cabangId'));
     }
 
     // 2. Fungsi untuk Export data ke PDF (berdasarkan filter tanggal)
     public function exportPdf(Request $request)
     {
-        // Tangkap input filter dari user, jika kosong gunakan default awal & akhir bulan ini
         $tanggalMulai = $request->input('tanggal_mulai', Carbon::now()->startOfMonth()->toDateString());
         $tanggalSelesai = $request->input('tanggal_selesai', Carbon::now()->endOfMonth()->toDateString());
+        $cabangId = $request->input('cabang_id');
 
         // Tarik data dari database
-        $dataAbsensi = Absensi::with(['user', 'jadwal.shift'])
+        $query = Absensi::with(['user.cabang', 'jadwal.shift'])
             ->whereBetween('tanggal', [$tanggalMulai, $tanggalSelesai])
-            ->orderBy('tanggal', 'asc')
-            ->get();
+            ->orderBy('tanggal', 'asc');
+            
+        if ($cabangId) {
+            $query->whereHas('user', function($q) use ($cabangId) {
+                $q->where('cabang_id', $cabangId);
+            });
+        }
+        
+        $dataAbsensi = $query->get();
 
         // Render ke file blade khusus PDF (nanti kita buat view-nya)
         $pdf = Pdf::loadView('superadmin.cetak-pdf', [
