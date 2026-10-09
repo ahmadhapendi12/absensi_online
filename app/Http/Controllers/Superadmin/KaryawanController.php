@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Superadmin;
 
 use App\Http\Controllers\Controller;
@@ -11,7 +12,7 @@ class KaryawanController extends Controller
 {
     public function index()
     {
-        $karyawans = User::with('cabang')->where('role', 'karyawan')->get();
+        $karyawans = User::with('cabang')->role('karyawan')->get();
         $cabangs = CabangKantor::all();
         return view('superadmin.karyawan', compact('karyawans', 'cabangs'));
     }
@@ -19,25 +20,20 @@ class KaryawanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nik' => 'required|unique:users',
             'name' => 'required|string|max:100',
             'email' => 'required|email|unique:users',
             'cabang_id' => 'required|exists:cabang_kantors,id',
             'password' => 'required|min:6',
-            'no_hp' => 'nullable|string|max:20',
-            'alamat' => 'nullable|string',
         ]);
 
-        User::create([
-            'nik' => $request->nik,
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'cabang_id' => $request->cabang_id,
             'password' => Hash::make($request->password),
-            'role' => 'karyawan',
-            'no_hp' => $request->no_hp,
-            'alamat' => $request->alamat,
         ]);
+
+        $user->assignRole('karyawan');
 
         return back()->with('success', 'Karyawan berhasil ditambahkan.');
     }
@@ -47,21 +43,15 @@ class KaryawanController extends Controller
         $user = User::findOrFail($id);
 
         $request->validate([
-            'nik' => 'required|unique:users,nik,' . $user->id,
             'name' => 'required|string|max:100',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'cabang_id' => 'required|exists:cabang_kantors,id',
-            'no_hp' => 'nullable|string|max:20',
-            'alamat' => 'nullable|string',
         ]);
 
         $user->update([
-            'nik' => $request->nik,
             'name' => $request->name,
             'email' => $request->email,
             'cabang_id' => $request->cabang_id,
-            'no_hp' => $request->no_hp,
-            'alamat' => $request->alamat,
         ]);
 
         if ($request->filled('password')) {

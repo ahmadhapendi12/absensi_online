@@ -5,9 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
-use App\Models\CabangKantor;   // Pastikan model Cabang sudah ada
-use App\Models\Absensi;  // Pastikan model Absensi sudah ada
-use App\Models\Lembur;   // Pastikan model Lembur sudah ada
+use App\Models\CabangKantor;
+use App\Models\Absensi;
+use App\Models\Lembur;
+use App\Models\PengajuanIzin;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -17,19 +18,18 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         // 1. Jika yang login adalah Superadmin
-        if ($user->role === 'superadmin') {
+        if ($user->hasAnyRole(['superadmin', 'super_admin'])) {
             $hariIni = Carbon::now()->toDateString();
 
-            // Hitung data untuk 4 Kartu Statistik
-            $totalKaryawan = User::where('role', 'karyawan')->count();
+            // Hitung data statistik
+            $totalKaryawan = User::role('karyawan')->count();
             $totalCabang = CabangKantor::count();
-            $pengajuanPending = 0; 
+            $pengajuanPending = PengajuanIzin::where('status', 'Pending')->count() 
+                              + Lembur::where('status_pengajuan', 'Pending')->count();
             $hadirHariIni = Absensi::where('tanggal', $hariIni)->count();
 
-            // Ambil data untuk daftar Lokasi Cabang Aktif
             $listCabang = CabangKantor::all();
 
-            // Lempar data (compact) ke view dashboard superadmin
             return view('superadmin.dashboard', compact(
                 'totalKaryawan', 
                 'totalCabang', 
@@ -40,12 +40,11 @@ class DashboardController extends Controller
         } 
         
         // 2. Jika yang login adalah Karyawan
-        elseif ($user->role === 'karyawan') {
-            // Langsung arahkan ke halaman kamera absensi
+        elseif ($user->hasRole('karyawan')) {
             return redirect()->route('karyawan.presensi.create');
         }
 
-        // 3. Keamanan tambahan: Jika role tidak valid, paksa logout
+        // 3. Jika role tidak valid, paksa logout
         Auth::logout();
         return redirect('/login')->withErrors(['login' => 'Akun Anda tidak memiliki akses yang sah.']);
     }

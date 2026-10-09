@@ -10,7 +10,7 @@ class MasterShift extends Model
     use HasUuids;
 
     protected $fillable = [
-        'nama_shift', 'jam_masuk', 'jam_pulang', 'lintas_hari'
+        'nama_shift', 'jam_masuk', 'jam_pulang', 'toleransi_terlambat_menit', 'lintas_hari'
     ];
 
     public function jadwal()

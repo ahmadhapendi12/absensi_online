@@ -13,20 +13,19 @@ return new class extends Migration
     {
        Schema::create('users', function (Blueprint $table) {
         $table->uuid('id')->primary(); // Ubah dari id() menjadi uuid()
-        $table->foreignUuid('cabang_id')->nullable()->constrained('cabang_kantors')->nullOnDelete();
-        $table->string('nik', 20)->unique()->nullable();
+        $table->uuid('cabang_id')->nullable()->index();
         $table->string('name', 100);
         $table->string('email', 100)->unique();
+        $table->timestamp('email_verified_at')->nullable();
+        $table->string('status', 20)->default('active');
         $table->string('password');
-        $table->enum('role', ['superadmin', 'karyawan'])->default('karyawan');
-        $table->string('no_hp', 20)->nullable();
-        $table->text('alamat')->nullable();
-        $table->string('foto_wajah_acuan')->nullable();
-        $table->string('foto_ktp')->nullable();
-        $table->string('berkas_identitas')->nullable();
-        $table->integer('sisa_cuti')->default(12);
         $table->rememberToken();
         $table->timestamps();
+
+        $table->foreign('cabang_id')
+            ->references('id')
+            ->on('cabang_kantors')
+            ->cascadeOnDelete();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

@@ -5,16 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Concerns\HasUuids; // Tambahkan ini
+use Illuminate\Database\Eloquent\Concerns\HasUuids; 
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasUuids; // Tambahkan HasUuids di sini
+    use HasFactory, Notifiable, HasUuids, HasRoles; // Tambahkan HasUuids di sini
 
     protected $fillable = [
-        'cabang_id', 'nik', 'name', 'email', 'password', 'role', 
-        'no_hp', 'alamat', 'foto_wajah_acuan', 'foto_ktp', 
-        'berkas_identitas', 'sisa_cuti'
+        'name', 'email', 'email_verified_at', 'status', 'password', 'cabang_id'
     ];
 
     protected $hidden = [
@@ -27,6 +26,11 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+     public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->hasAnyRole('super_admin');
     }
 
     // Relasi

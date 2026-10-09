@@ -17,6 +17,8 @@ return new class extends Migration
         $table->foreignUuid('shift_id')->constrained('master_shifts')->cascadeOnDelete();
         $table->date('tanggal_kerja');
         $table->timestamps();
+
+        $table->unique(['user_id', 'tanggal_kerja']);
       });
     }
 

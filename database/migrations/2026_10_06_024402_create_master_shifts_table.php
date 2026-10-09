@@ -16,6 +16,7 @@ return new class extends Migration
         $table->string('nama_shift', 50);
         $table->time('jam_masuk');
         $table->time('jam_pulang');
+        $table->integer('toleransi_terlambat_menit')->default(15);
         $table->boolean('lintas_hari')->default(false);
         $table->timestamps();
     });

@@ -1,14 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 
 // Import Controller Superadmin
 use App\Http\Controllers\Superadmin\KaryawanController;
 use App\Http\Controllers\Superadmin\CabangController;
+use App\Http\Controllers\Superadmin\ShiftController;
+use App\Http\Controllers\Superadmin\JadwalKaryawanController;
 use App\Http\Controllers\Superadmin\PengajuanController as SuperadminPengajuan;
 use App\Http\Controllers\Superadmin\LaporanController;
-use App\Http\Controllers\Superadmin\JadwalKaryawanController;
 
 // Import Controller Karyawan
 use App\Http\Controllers\Karyawan\PresensiController;
@@ -22,77 +24,82 @@ use App\Http\Controllers\Karyawan\ProfilController;
 |--------------------------------------------------------------------------
 */
 
-// Rute Default: Arahkan langsung ke halaman login (Breeze)
+// Redirect Default
 Route::get('/', function () {
-    return redirect('/login');
+    return redirect()->route('login');
 });
-use App\Http\Controllers\AuthController;
 
-// Rute untuk Tamu (Belum Login)
+// Guest Routes (Belum Login)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'index'])->name('login');
-    Route::post('/login', [AuthController::class, 'authenticate'])->name('login.post');
+    Route::post('/login', [AuthController::class, 'authenticate'])->middleware('throttle:5,1')->name('login.post');
 });
 
-// Rute untuk Logout (Harus Login Dulu)
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
-// Grup Rute Wajib Login (Authentication)
+// Authenticated Routes (Sudah Login)
 Route::middleware(['auth'])->group(function () {
-    
-    // Otak pengarah otomatis saat baru login
+
+    // Logout & Dashboard Pengarah
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // ==========================================
-    // AREA SUPERADMIN (Digembok Satpam Role: superadmin)
+    // AREA SUPERADMIN (Role: superadmin / super_admin)
     // ==========================================
-    Route::middleware(['role:superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+    Route::middleware(['role:super_admin|superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
         
-        // Rute Karyawan
+        // Kelola Karyawan
         Route::get('/karyawan', [KaryawanController::class, 'index'])->name('karyawan.index');
         Route::post('/karyawan', [KaryawanController::class, 'store'])->name('karyawan.store');
         Route::put('/karyawan/{id}', [KaryawanController::class, 'update'])->name('karyawan.update');
         Route::delete('/karyawan/{id}', [KaryawanController::class, 'destroy'])->name('karyawan.destroy');
         
-        // Rute Cabang/Lokasi GPS
+        // Kelola Cabang/Lokasi GPS
         Route::get('/cabang', [CabangController::class, 'index'])->name('cabang.index');
         Route::post('/cabang', [CabangController::class, 'store'])->name('cabang.store');
         Route::delete('/cabang/{id}', [CabangController::class, 'destroy'])->name('cabang.destroy');
 
-        // Rute Jadwal Karyawan
+        // Kelola Master Shift Kerja
+        Route::get('/shift', [ShiftController::class, 'index'])->name('shift.index');
+        Route::post('/shift', [ShiftController::class, 'store'])->name('shift.store');
+        Route::put('/shift/{id}', [ShiftController::class, 'update'])->name('shift.update');
+        Route::delete('/shift/{id}', [ShiftController::class, 'destroy'])->name('shift.destroy');
+
+        // Kelola Jadwal Karyawan
         Route::get('/jadwal', [JadwalKaryawanController::class, 'index'])->name('jadwal.index');
         Route::post('/jadwal', [JadwalKaryawanController::class, 'store'])->name('jadwal.store');
         Route::delete('/jadwal/{id}', [JadwalKaryawanController::class, 'destroy'])->name('jadwal.destroy');
 
-        // Rute Approval Pengajuan & Lembur
+        // Approval Pengajuan Izin & Lembur
         Route::get('/pengajuan', [SuperadminPengajuan::class, 'index'])->name('pengajuan.index');
         Route::post('/pengajuan/izin/{id}/approve', [SuperadminPengajuan::class, 'approveIzin'])->name('pengajuan.izin.approve');
+        Route::post('/pengajuan/izin/{id}/reject', [SuperadminPengajuan::class, 'rejectIzin'])->name('pengajuan.izin.reject');
         Route::post('/pengajuan/lembur/{id}/approve', [SuperadminPengajuan::class, 'approveLembur'])->name('pengajuan.lembur.approve');
         Route::post('/pengajuan/lembur/{id}/reject', [SuperadminPengajuan::class, 'rejectLembur'])->name('pengajuan.lembur.reject');
 
-        // Rute Laporan & Cetak PDF
+        // Laporan Rekap & Export PDF
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
         Route::post('/laporan/export-pdf', [LaporanController::class, 'exportPdf'])->name('laporan.export-pdf');
     });
 
     // ==========================================
-    // AREA KARYAWAN (Digembok Satpam Role: karyawan)
+    // AREA KARYAWAN (Role: karyawan)
     // ==========================================
     Route::middleware(['role:karyawan'])->prefix('karyawan')->name('karyawan.')->group(function () {
         
-        // Rute Inti: Kamera & GPS (Presensi)
+        // Kamera & GPS Presensi
         Route::get('/presensi', [PresensiController::class, 'create'])->name('presensi.create');
         Route::post('/presensi', [PresensiController::class, 'store'])->name('presensi.store');
 
-        // Rute Riwayat Mandiri
+        // Riwayat Presensi Mandiri
         Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
 
-        // Rute Pengajuan
+        // Pengajuan Izin & Lembur
         Route::get('/pengajuan', [KaryawanPengajuan::class, 'index'])->name('pengajuan.index');
         Route::post('/pengajuan/izin', [KaryawanPengajuan::class, 'storeIzin'])->name('pengajuan.izin.store');
         Route::get('/pengajuan/lembur', [KaryawanPengajuan::class, 'lembur'])->name('pengajuan.lembur');
         Route::post('/pengajuan/lembur', [KaryawanPengajuan::class, 'storeLembur'])->name('pengajuan.lembur.store');
 
-        // Rute Profil
+        // Profil Karyawan
         Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');
     });
 

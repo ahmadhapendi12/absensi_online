@@ -12,7 +12,7 @@ class JadwalKaryawanController extends Controller
 {
     public function index(Request $request)
     {
-        $karyawans = User::where('role', 'karyawan')->get();
+        $karyawans = User::role('karyawan')->get();
         $shifts = MasterShift::all();
         
         $query = JadwalKaryawan::with(['user', 'shift'])->orderBy('tanggal_kerja', 'desc');

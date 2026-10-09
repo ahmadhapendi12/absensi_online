@@ -10,7 +10,7 @@ class Absensi extends Model
     use HasUuids;
 
     protected $fillable = [
-        'user_id', 'jadwal_id', 'tanggal', 'jam_masuk', 'jam_pulang',
+        'user_id', 'jadwal_id', 'pengajuan_izin_id', 'tanggal', 'jam_masuk', 'jam_pulang',
         'foto_masuk', 'foto_pulang', 'koordinat_masuk', 'koordinat_pulang',
         'status_masuk', 'menit_terlambat'
     ];
@@ -23,5 +23,10 @@ class Absensi extends Model
     public function jadwal()
     {
         return $this->belongsTo(JadwalKaryawan::class, 'jadwal_id');
+    }
+
+    public function pengajuanIzin()
+    {
+        return $this->belongsTo(PengajuanIzin::class, 'pengajuan_izin_id');
     }
 }
