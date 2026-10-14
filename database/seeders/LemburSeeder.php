@@ -68,6 +68,8 @@ class LemburSeeder extends Seeder
                         'alasan_lembur' => 'Revisi laporan penjualan harian',
                         'status_pengajuan' => 'Ditolak',
                         'disetujui_oleh' => $superadmin ? $superadmin->id : null,
+                        'jam_mulai_aktual' => '17:00:00',
+                        'jam_selesai_aktual' => '18:00:00',
                         'durasi_menit' => 60,
                     ]
                 );

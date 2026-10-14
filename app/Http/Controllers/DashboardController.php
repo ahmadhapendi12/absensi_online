@@ -19,24 +19,7 @@ class DashboardController extends Controller
 
         // 1. Jika yang login adalah Superadmin
         if ($user->hasAnyRole(['superadmin', 'super_admin'])) {
-            $hariIni = Carbon::now()->toDateString();
-
-            // Hitung data statistik
-            $totalKaryawan = User::role('karyawan')->count();
-            $totalCabang = CabangKantor::count();
-            $pengajuanPending = PengajuanIzin::where('status', 'Pending')->count() 
-                              + Lembur::where('status_pengajuan', 'Pending')->count();
-            $hadirHariIni = Absensi::where('tanggal', $hariIni)->count();
-
-            $listCabang = CabangKantor::all();
-
-            return view('superadmin.dashboard', compact(
-                'totalKaryawan', 
-                'totalCabang', 
-                'pengajuanPending', 
-                'hadirHariIni', 
-                'listCabang'
-            )); 
+            return redirect('/admin');
         } 
         
         // 2. Jika yang login adalah Karyawan

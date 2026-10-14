@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('user_profiles', function (Blueprint $table) {
-            $table->uuid()->primary();
+            $table->uuid('id')->primary();
             $table->uuid('user_id')->unique();
-            $table->integer('nik' )->nullable();
+            $table->string('nik', 30)->nullable()->unique();
             $table->string('name', 100)->nullable();
             $table->string('foto_ktp')->nullable();
             $table->string('foto_wajah_acuan')->nullable();
