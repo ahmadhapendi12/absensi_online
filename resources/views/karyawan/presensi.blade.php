@@ -10,12 +10,17 @@
     </div>
     <div class="flex items-center">
         <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center text-blue-600 font-bold text-xl mr-4 border-2 border-blue-300 overflow-hidden shadow-inner">
-            <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=EBF8FF&color=2B6CB0" alt="Profil">
+            <img src="{{ Auth::user()->avatar_url }}" alt="Profil" class="w-full h-full object-cover">
         </div>
         <div>
             <p class="text-sm text-blue-100 mb-1">Halo,</p>
             <h2 class="text-lg font-bold leading-tight">{{ Auth::user()->name }}</h2>
-            <p class="text-xs text-blue-200 capitalize mt-1">{{ Auth::user()->role }} | {{ Auth::user()->cabang->nama_cabang ?? 'Pusat' }}</p>
+            <p class="text-xs text-blue-200 capitalize mt-1">{{ Auth::user()->roles->first()?->name ?? 'Karyawan' }} | {{ Auth::user()->cabang->nama_cabang ?? 'Pusat' }}</p>
+            @if(isset($jadwal) && $jadwal->shift)
+                <div class="mt-1.5 inline-flex items-center bg-white/20 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-xs font-semibold text-white">
+                    <i class="fas fa-clock mr-1.5 text-yellow-300"></i> {{ $jadwal->shift->nama_shift }} ({{ \Carbon\Carbon::parse($jadwal->shift->jam_masuk)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwal->shift->jam_pulang)->format('H:i') }})
+                </div>
+            @endif
         </div>
     </div>
 </div>

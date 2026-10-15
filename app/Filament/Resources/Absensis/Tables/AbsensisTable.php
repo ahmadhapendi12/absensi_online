@@ -21,14 +21,10 @@ class AbsensisTable
                     ->label('Tanggal')
                     ->date('d M Y')
                     ->sortable(),
-                TextColumn::make('user.profile.nik')
-                    ->label('NIK')
-                    ->placeholder('-')
-                    ->searchable()
-                    ->sortable(),
                 TextColumn::make('user.name')
-                    ->label('Nama Karyawan')
-                    ->searchable()
+                    ->label('Karyawan')
+                    ->description(fn ($record): string => 'NIK: ' . ($record->user?->profile?->nik ?? '-'))
+                    ->searchable(['name'])
                     ->sortable(),
                 TextColumn::make('user.cabang.nama_cabang')
                     ->label('Cabang')
@@ -41,15 +37,8 @@ class AbsensisTable
                     ->color('gray')
                     ->placeholder('-'),
                 TextColumn::make('jam_masuk')
-                    ->label('Masuk')
-                    ->time('H:i')
-                    ->placeholder('-')
-                    ->sortable(),
-                TextColumn::make('jam_pulang')
-                    ->label('Pulang')
-                    ->time('H:i')
-                    ->placeholder('-')
-                    ->sortable(),
+                    ->label('Jam Presensi')
+                    ->formatStateUsing(fn ($record) => ($record->jam_masuk ? \Carbon\Carbon::parse($record->jam_masuk)->format('H:i') : '-') . ' - ' . ($record->jam_pulang ? \Carbon\Carbon::parse($record->jam_pulang)->format('H:i') : '-')),
                 TextColumn::make('status_masuk')
                     ->label('Status')
                     ->badge()
@@ -72,7 +61,7 @@ class AbsensisTable
                     ->label('Foto Selfie')
                     ->disk('public')
                     ->circular()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('status_masuk')

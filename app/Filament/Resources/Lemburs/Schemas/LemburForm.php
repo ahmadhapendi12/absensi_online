@@ -28,14 +28,44 @@ class LemburForm
                     ->required(),
                 TimePicker::make('jam_mulai_aktual')
                     ->label('Jam Mulai Lembur')
+                    ->prefixIcon('heroicon-o-clock')
+                    ->seconds(false)
+                    ->live()
+                    ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                        $selesai = $get('jam_selesai_aktual');
+                        if ($state && $selesai) {
+                            $start = \Carbon\Carbon::parse($state);
+                            $end = \Carbon\Carbon::parse($selesai);
+                            if ($end->lessThan($start)) {
+                                $end->addDay();
+                            }
+                            $set('durasi_menit', $start->diffInMinutes($end));
+                        }
+                    })
                     ->required(),
                 TimePicker::make('jam_selesai_aktual')
                     ->label('Jam Selesai Lembur')
+                    ->prefixIcon('heroicon-o-clock')
+                    ->seconds(false)
+                    ->live()
+                    ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                        $mulai = $get('jam_mulai_aktual');
+                        if ($mulai && $state) {
+                            $start = \Carbon\Carbon::parse($mulai);
+                            $end = \Carbon\Carbon::parse($state);
+                            if ($end->lessThan($start)) {
+                                $end->addDay();
+                            }
+                            $set('durasi_menit', $start->diffInMinutes($end));
+                        }
+                    })
                     ->required(),
                 TextInput::make('durasi_menit')
                     ->label('Durasi Lembur (Menit)')
+                    ->suffix(' menit')
                     ->numeric()
                     ->default(60)
+                    ->helperText('Otomatis dihitung dari jam mulai & selesai.')
                     ->required(),
                 Select::make('status_pengajuan')
                     ->label('Status Pengajuan')

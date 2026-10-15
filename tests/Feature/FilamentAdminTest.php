@@ -19,6 +19,13 @@ class FilamentAdminTest extends TestCase
 
         $response = $this->get('/admin');
         $response->assertStatus(200);
+        $response->assertSee('StatsOverview');
+        $response->assertSee('AttendanceChart');
+        $response->assertSee('AttendanceDistributionChart');
+        $response->assertSee('LatestAbsensiWidget');
+
+        \Livewire\Livewire::test(\App\Filament\Widgets\StatsOverview::class)
+            ->assertSee('Total Karyawan Aktif');
     }
 
     public function test_superadmin_can_access_users_resource(): void
@@ -125,5 +132,17 @@ class FilamentAdminTest extends TestCase
 
         $response = $this->get('/admin');
         $response->assertStatus(403);
+    }
+
+    public function test_karyawan_presensi_page_displays_shift(): void
+    {
+        $karyawan = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->first();
+        $this->actingAs($karyawan);
+
+        $response = $this->get('/karyawan/presensi');
+        $response->assertStatus(200);
+        if ($karyawan->jadwal?->shift) {
+            $response->assertSee($karyawan->jadwal->shift->nama_shift);
+        }
     }
 }

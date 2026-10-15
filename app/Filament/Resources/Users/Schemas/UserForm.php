@@ -78,8 +78,9 @@ class UserForm
                             ->rows(3)
                             ->columnSpanFull(),
                         FileUpload::make('foto_wajah_acuan')
-                            ->label('Foto Wajah Acuan (Presensi Selfie)')
+                            ->label('Foto Profil & Wajah Acuan (Face ID)')
                             ->image()
+                            ->avatar()
                             ->directory('wajah_acuan')
                             ->disk('public'),
                         FileUpload::make('foto_ktp')

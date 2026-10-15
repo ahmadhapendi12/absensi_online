@@ -19,42 +19,17 @@ class JadwalKaryawanSeeder extends Seeder
         $shifts = MasterShift::all();
 
         if ($karyawans->count() > 0 && $shifts->count() > 0) {
-            $hariIni = Carbon::now()->toDateString();
-            $besok = Carbon::now()->addDay()->toDateString();
-            $lusa = Carbon::now()->addDays(2)->toDateString();
-
-            // 1. Jadwal Hari Ini Karyawan 1 (Shift Pagi)
+            // 1. Jadwal Karyawan 1 (Shift Pagi)
             JadwalKaryawan::firstOrCreate(
-                [
-                    'user_id' => $karyawans[0]->id,
-                    'tanggal_kerja' => $hariIni,
-                ],
-                [
-                    'shift_id' => $shifts[0]->id,
-                ]
+                ['user_id' => $karyawans[0]->id],
+                ['shift_id' => $shifts[0]->id]
             );
 
-            // 2. Jadwal Besok Karyawan 1 (Shift Sore)
-            JadwalKaryawan::firstOrCreate(
-                [
-                    'user_id' => $karyawans[0]->id,
-                    'tanggal_kerja' => $besok,
-                ],
-                [
-                    'shift_id' => isset($shifts[1]) ? $shifts[1]->id : $shifts[0]->id,
-                ]
-            );
-
-            // 3. Jadwal Hari Ini Karyawan 2 (Shift Sore/Pagi)
+            // 2. Jadwal Karyawan 2 (Shift Sore)
             if (isset($karyawans[1])) {
                 JadwalKaryawan::firstOrCreate(
-                    [
-                        'user_id' => $karyawans[1]->id,
-                        'tanggal_kerja' => $hariIni,
-                    ],
-                    [
-                        'shift_id' => isset($shifts[1]) ? $shifts[1]->id : $shifts[0]->id,
-                    ]
+                    ['user_id' => $karyawans[1]->id],
+                    ['shift_id' => isset($shifts[1]) ? $shifts[1]->id : $shifts[0]->id]
                 );
             }
         }

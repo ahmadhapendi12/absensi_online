@@ -31,8 +31,6 @@ class JadwalKaryawanResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    protected static ?string $recordTitleAttribute = 'tanggal_kerja';
-
     public static function form(Schema $schema): Schema
     {
         return JadwalKaryawanForm::configure($schema);

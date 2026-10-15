@@ -30,13 +30,10 @@ class PengajuanController extends Controller
         ]);
 
         // Auto-generate / Sync ke tabel Absensi untuk tanggal rentang izin
+        $jadwal = JadwalKaryawan::where('user_id', $izin->user_id)->first();
         $period = CarbonPeriod::create($izin->tanggal_mulai, $izin->tanggal_selesai);
         foreach ($period as $date) {
             $tgl = $date->toDateString();
-            
-            $jadwal = JadwalKaryawan::where('user_id', $izin->user_id)
-                ->where('tanggal_kerja', $tgl)
-                ->first();
 
             Absensi::updateOrCreate(
                 [

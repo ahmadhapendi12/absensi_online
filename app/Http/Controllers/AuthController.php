@@ -14,7 +14,7 @@ class AuthController extends Controller
     {
         if (Auth::check()) {
             $user = Auth::user();
-            if ($user->hasAnyRole(['superadmin', 'super_admin'])) {
+            if ($user->hasRole('superadmin')) {
                 return redirect('/admin');
             }
             return redirect()->route('karyawan.presensi.create');
@@ -56,7 +56,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $user = Auth::user();
 
-            if ($user->hasAnyRole(['superadmin', 'super_admin'])) {
+            if ($user->hasRole('superadmin')) {
                 return redirect('/admin');
             }
 

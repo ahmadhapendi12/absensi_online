@@ -20,9 +20,10 @@ class CabangKantorsTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('latitude')
-                    ->label('Latitude'),
-                TextColumn::make('longitude')
-                    ->label('Longitude'),
+                    ->label('Koordinat GPS')
+                    ->formatStateUsing(fn ($record) => $record->latitude . ', ' . $record->longitude)
+                    ->fontFamily('mono')
+                    ->copyable(),
                 TextColumn::make('radius_meter')
                     ->label('Radius')
                     ->suffix(' meter')

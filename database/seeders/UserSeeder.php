@@ -25,7 +25,7 @@ class UserSeeder extends Seeder
                 'cabang_id' => $cabangId,
             ]
         );
-        $superadmin->syncRoles(['super_admin', 'superadmin']);
+        $superadmin->syncRoles(['superadmin']);
 
         UserProfile::updateOrCreate(
             ['user_id' => $superadmin->id],

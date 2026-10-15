@@ -18,7 +18,7 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         // 1. Jika yang login adalah Superadmin
-        if ($user->hasAnyRole(['superadmin', 'super_admin'])) {
+        if ($user->hasRole('superadmin')) {
             return redirect('/admin');
         } 
         

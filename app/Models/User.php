@@ -7,10 +7,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids; 
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, HasAvatar
 {
     use HasFactory, Notifiable, HasUuids, HasRoles;
 
@@ -32,7 +33,25 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->hasAnyRole(['super_admin', 'superadmin']);
+        return $this->hasRole('superadmin');
+    }
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->avatar_url;
+    }
+
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->profile?->foto_wajah_acuan) {
+            return asset('storage/' . $this->profile->foto_wajah_acuan);
+        }
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=FFE5E5&color=C53030';
+    }
+
+    public function getNikAttribute(): ?string
+    {
+        return $this->profile?->nik;
     }
 
     // Relasi
@@ -44,5 +63,10 @@ class User extends Authenticatable implements FilamentUser
     public function profile()
     {
         return $this->hasOne(UserProfile::class, 'user_id');
+    }
+
+    public function jadwal()
+    {
+        return $this->hasOne(JadwalKaryawan::class, 'user_id');
     }
 }

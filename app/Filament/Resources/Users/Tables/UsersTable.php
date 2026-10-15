@@ -6,9 +6,11 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use App\Models\User;
 
 class UsersTable
 {
@@ -16,6 +18,11 @@ class UsersTable
     {
         return $table
             ->columns([
+                ImageColumn::make('profile.foto_wajah_acuan')
+                    ->label('Foto')
+                    ->circular()
+                    ->disk('public')
+                    ->defaultImageUrl(fn (User $record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&background=FFE5E5&color=C53030'),
                 TextColumn::make('profile.nik')
                     ->label('NIK')
                     ->placeholder('-')
@@ -24,13 +31,10 @@ class UsersTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('name')
-                    ->label('Nama Karyawan')
-                    ->searchable()
+                    ->label('Karyawan')
+                    ->description(fn (User $record): ?string => $record->email)
+                    ->searchable(['name', 'email'])
                     ->sortable(),
-                TextColumn::make('email')
-                    ->label('Email')
-                    ->copyable()
-                    ->searchable(),
                 TextColumn::make('profile.telphone')
                     ->label('No. HP / WA')
                     ->placeholder('-')
@@ -46,7 +50,7 @@ class UsersTable
                     ->label('Role')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'superadmin', 'super_admin' => 'danger',
+                        'superadmin' => 'danger',
                         'karyawan' => 'success',
                         default => 'gray',
                     }),

@@ -18,37 +18,24 @@ class LembursTable
     {
         return $table
             ->columns([
-                TextColumn::make('tanggal')
-                    ->label('Tanggal')
-                    ->date('d M Y')
-                    ->sortable(),
-                TextColumn::make('user.profile.nik')
-                    ->label('NIK')
-                    ->placeholder('-')
-                    ->searchable()
-                    ->sortable(),
                 TextColumn::make('user.name')
-                    ->label('Nama Karyawan')
-                    ->searchable()
+                    ->label('Karyawan')
+                    ->description(fn ($record): string => 'NIK: ' . ($record->user?->profile?->nik ?? '-'))
+                    ->searchable(['name'])
                     ->sortable(),
                 TextColumn::make('user.cabang.nama_cabang')
                     ->label('Cabang')
                     ->badge()
                     ->color('info')
                     ->sortable(),
-                TextColumn::make('jam_mulai_aktual')
-                    ->label('Jam Mulai')
-                    ->time('H:i')
-                    ->placeholder('-'),
-                TextColumn::make('jam_selesai_aktual')
-                    ->label('Jam Selesai')
-                    ->time('H:i')
-                    ->placeholder('-'),
-                TextColumn::make('durasi_menit')
-                    ->label('Durasi')
-                    ->suffix(' menit')
-                    ->numeric()
+                TextColumn::make('tanggal')
+                    ->label('Tanggal')
+                    ->date('d M Y')
                     ->sortable(),
+                TextColumn::make('jam_mulai_aktual')
+                    ->label('Waktu Lembur')
+                    ->formatStateUsing(fn ($record) => ($record->jam_mulai_aktual ? \Carbon\Carbon::parse($record->jam_mulai_aktual)->format('H:i') : '-') . ' - ' . ($record->jam_selesai_aktual ? \Carbon\Carbon::parse($record->jam_selesai_aktual)->format('H:i') : '-'))
+                    ->description(fn ($record): string => ($record->durasi_menit ?? 0) . ' Menit'),
                 TextColumn::make('status_pengajuan')
                     ->label('Status')
                     ->badge()

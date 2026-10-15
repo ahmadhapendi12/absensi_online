@@ -21,12 +21,8 @@ class MasterShiftsTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('jam_masuk')
-                    ->label('Jam Masuk')
-                    ->time('H:i')
-                    ->sortable(),
-                TextColumn::make('jam_pulang')
-                    ->label('Jam Pulang')
-                    ->time('H:i')
+                    ->label('Jam Kerja')
+                    ->formatStateUsing(fn ($record) => \Carbon\Carbon::parse($record->jam_masuk)->format('H:i') . ' - ' . \Carbon\Carbon::parse($record->jam_pulang)->format('H:i'))
                     ->sortable(),
                 TextColumn::make('toleransi_terlambat_menit')
                     ->label('Toleransi')

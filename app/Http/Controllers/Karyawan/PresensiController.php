@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Karyawan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Absensi;
+use App\Models\JadwalKaryawan;
+use App\Models\Lembur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -13,8 +15,9 @@ class PresensiController extends Controller
 {
     public function create()
     {
-        // Menampilkan UI kamera dan GPS
-        return view('karyawan.presensi');
+        $user = Auth::user();
+        $jadwal = JadwalKaryawan::with('shift')->where('user_id', $user->id)->first();
+        return view('karyawan.presensi', compact('jadwal'));
     }
 
     public function store(Request $request)
@@ -48,16 +51,36 @@ class PresensiController extends Controller
                           ->first();
 
         if (!$absensi) {
+            // Ambil penetapan shift karyawan di belakang layar
+            $jadwal = JadwalKaryawan::with('shift')->where('user_id', $user->id)->first();
+            $statusMasuk = 'Tepat Waktu';
+            $menitTerlambat = 0;
+
+            if ($jadwal && $jadwal->shift) {
+                $shift = $jadwal->shift;
+                $jamMasukShift = Carbon::createFromTimeString($shift->jam_masuk);
+                $jamMasukUser = Carbon::createFromTimeString($jamSekarang);
+                $toleransi = (int) ($shift->toleransi_terlambat_menit ?? 0);
+                $batasToleransi = $jamMasukShift->copy()->addMinutes($toleransi);
+
+                if ($jamMasukUser->greaterThan($batasToleransi)) {
+                    $statusMasuk = 'Terlambat';
+                    $menitTerlambat = $jamMasukShift->diffInMinutes($jamMasukUser);
+                }
+            }
+
             // Proses Absen Masuk
             Absensi::create([
                 'user_id' => $user->id,
+                'jadwal_id' => $jadwal?->id,
                 'tanggal' => $hariIni,
                 'jam_masuk' => $jamSekarang,
                 'koordinat_masuk' => $request->koordinat_masuk, 
                 'foto_masuk' => $savedPath, 
-                'status_masuk' => 'Tepat Waktu' 
+                'status_masuk' => $statusMasuk,
+                'menit_terlambat' => $menitTerlambat,
             ]);
-            return response()->json(['message' => 'Berhasil Absen Masuk!']);
+            return response()->json(['message' => 'Berhasil Absen Masuk! (' . $statusMasuk . ')']);
         } else {
             // Proses Absen Pulang
             $absensi->update([

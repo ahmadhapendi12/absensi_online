@@ -15,7 +15,7 @@ class JadwalKaryawanController extends Controller
         $karyawans = User::role('karyawan')->get();
         $shifts = MasterShift::all();
         
-        $query = JadwalKaryawan::with(['user', 'shift'])->orderBy('tanggal_kerja', 'desc');
+        $query = JadwalKaryawan::with(['user', 'shift'])->orderBy('created_at', 'desc');
 
         // Optional filtering by user
         if ($request->has('user_id') && $request->user_id != '') {
@@ -32,25 +32,14 @@ class JadwalKaryawanController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'shift_id' => 'required|exists:master_shifts,id',
-            'tanggal_kerja' => 'required|date',
         ]);
 
-        // Cek apakah jadwal sudah ada untuk tanggal tersebut
-        $exists = JadwalKaryawan::where('user_id', $request->user_id)
-            ->where('tanggal_kerja', $request->tanggal_kerja)
-            ->first();
+        JadwalKaryawan::updateOrCreate(
+            ['user_id' => $request->user_id],
+            ['shift_id' => $request->shift_id]
+        );
 
-        if ($exists) {
-            return back()->with('error', 'Karyawan tersebut sudah memiliki jadwal pada tanggal yang dipilih!');
-        }
-
-        JadwalKaryawan::create([
-            'user_id' => $request->user_id,
-            'shift_id' => $request->shift_id,
-            'tanggal_kerja' => $request->tanggal_kerja,
-        ]);
-
-        return back()->with('success', 'Jadwal karyawan berhasil ditambahkan!');
+        return back()->with('success', 'Jadwal shift karyawan berhasil disimpan!');
     }
 
     public function destroy($id)

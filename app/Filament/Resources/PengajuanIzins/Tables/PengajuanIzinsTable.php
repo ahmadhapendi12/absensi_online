@@ -21,14 +21,10 @@ class PengajuanIzinsTable
     {
         return $table
             ->columns([
-                TextColumn::make('user.profile.nik')
-                    ->label('NIK')
-                    ->placeholder('-')
-                    ->searchable()
-                    ->sortable(),
                 TextColumn::make('user.name')
-                    ->label('Nama Karyawan')
-                    ->searchable()
+                    ->label('Karyawan')
+                    ->description(fn ($record): string => 'NIK: ' . ($record->user?->profile?->nik ?? '-'))
+                    ->searchable(['name'])
                     ->sortable(),
                 TextColumn::make('user.cabang.nama_cabang')
                     ->label('Cabang')
@@ -45,12 +41,15 @@ class PengajuanIzinsTable
                         default => 'gray',
                     }),
                 TextColumn::make('tanggal_mulai')
-                    ->label('Mulai')
-                    ->date('d M Y')
-                    ->sortable(),
-                TextColumn::make('tanggal_selesai')
-                    ->label('Selesai')
-                    ->date('d M Y')
+                    ->label('Periode Izin')
+                    ->formatStateUsing(function ($record) {
+                        $mulai = \Carbon\Carbon::parse($record->tanggal_mulai)->format('d M Y');
+                        if ($record->tanggal_mulai === $record->tanggal_selesai) {
+                            return $mulai;
+                        }
+                        $selesai = \Carbon\Carbon::parse($record->tanggal_selesai)->format('d M Y');
+                        return "{$mulai} - {$selesai}";
+                    })
                     ->sortable(),
                 TextColumn::make('alasan')
                     ->label('Alasan')
@@ -94,12 +93,10 @@ class PengajuanIzinsTable
                             'disetujui_oleh' => auth()->id(),
                         ]);
 
+                        $jadwal = JadwalKaryawan::where('user_id', $record->user_id)->first();
                         $period = CarbonPeriod::create($record->tanggal_mulai, $record->tanggal_selesai);
                         foreach ($period as $date) {
                             $tgl = $date->toDateString();
-                            $jadwal = JadwalKaryawan::where('user_id', $record->user_id)
-                                ->where('tanggal_kerja', $tgl)
-                                ->first();
 
                             Absensi::updateOrCreate(
                                 ['user_id' => $record->user_id, 'tanggal' => $tgl],

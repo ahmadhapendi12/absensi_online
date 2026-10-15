@@ -45,12 +45,8 @@
                     @endforeach
                 </select>
             </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Kerja</label>
-                <input type="date" name="tanggal_kerja" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500">
-            </div>
             <button type="submit" class="w-full bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition">
-                Simpan Jadwal
+                Simpan Penetapan Shift
             </button>
         </form>
     </div>
@@ -58,7 +54,7 @@
     <!-- Tabel Daftar Jadwal -->
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 md:col-span-2">
         <div class="flex justify-between items-center mb-4 border-b pb-2">
-            <h3 class="font-bold text-red-900">Daftar Jadwal</h3>
+            <h3 class="font-bold text-red-900">Daftar Shift Karyawan</h3>
             
             <form action="{{ route('superadmin.jadwal.index') }}" method="GET" class="flex gap-2">
                 <select name="user_id" class="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-red-500">
@@ -76,8 +72,7 @@
                 <thead class="bg-red-50 text-red-900">
                     <tr>
                         <th class="p-3 rounded-tl-lg">Nama Karyawan</th>
-                        <th class="p-3">Tanggal</th>
-                        <th class="p-3">Shift</th>
+                        <th class="p-3">Shift Kerja</th>
                         <th class="p-3 rounded-tr-lg">Aksi</th>
                     </tr>
                 </thead>
@@ -85,7 +80,6 @@
                     @forelse($jadwals as $jadwal)
                     <tr class="border-b border-gray-50 hover:bg-gray-50">
                         <td class="p-3 font-semibold">{{ $jadwal->user->name ?? '-' }}</td>
-                        <td class="p-3">{{ \Carbon\Carbon::parse($jadwal->tanggal_kerja)->translatedFormat('d M Y') }}</td>
                         <td class="p-3">
                             <span class="bg-orange-100 text-orange-800 py-1 px-2 rounded-full text-xs font-bold">
                                 {{ $jadwal->shift->nama_shift ?? '-' }}
