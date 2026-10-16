@@ -18,17 +18,64 @@ class MasterShiftsTable
             ->columns([
                 TextColumn::make('nama_shift')
                     ->label('Nama Shift')
+                    ->weight('bold')
                     ->searchable()
                     ->sortable(),
+
                 TextColumn::make('jam_masuk')
-                    ->label('Jam Kerja')
-                    ->formatStateUsing(fn ($record) => \Carbon\Carbon::parse($record->jam_masuk)->format('H:i') . ' - ' . \Carbon\Carbon::parse($record->jam_pulang)->format('H:i'))
+                    ->label('Jam Kerja Shift')
+                    ->formatStateUsing(fn ($record) => \Carbon\Carbon::parse($record->jam_masuk)->format('H:i') . ' - ' . \Carbon\Carbon::parse($record->jam_pulang)->format('H:i') . ' WIB')
+                    ->badge()
+                    ->color('gray')
                     ->sortable(),
+
+                TextColumn::make('buka_absen_menit')
+                    ->label('Buka Presensi Masuk')
+                    ->formatStateUsing(function ($record) {
+                        $masuk = \Carbon\Carbon::createFromTimeString($record->jam_masuk);
+                        $buka = $masuk->subMinutes($record->buka_absen_menit ?? 30);
+                        return $buka->format('H:i') . ' WIB';
+                    })
+                    ->description(fn ($record): string => ($record->buka_absen_menit ?? 30) . ' menit sebelum shift')
+                    ->badge()
+                    ->color('success'),
+
                 TextColumn::make('toleransi_terlambat_menit')
-                    ->label('Toleransi')
-                    ->suffix(' menit')
-                    ->numeric()
-                    ->sortable(),
+                    ->label('Batas Tepat Waktu')
+                    ->formatStateUsing(function ($record) {
+                        $masuk = \Carbon\Carbon::createFromTimeString($record->jam_masuk);
+                        $toleransi = $masuk->addMinutes($record->toleransi_terlambat_menit ?? 15);
+                        return 's/d ' . $toleransi->format('H:i') . ' WIB';
+                    })
+                    ->description(fn ($record): string => 'Toleransi ' . ($record->toleransi_terlambat_menit ?? 15) . ' menit')
+                    ->badge()
+                    ->color('warning'),
+
+                TextColumn::make('toleransi_pulang_menit')
+                    ->label('Boleh Absen Pulang')
+                    ->formatStateUsing(function ($record) {
+                        $pulang = \Carbon\Carbon::createFromTimeString($record->jam_pulang);
+                        if (($record->toleransi_pulang_menit ?? 0) > 0) {
+                            $boleh = $pulang->subMinutes($record->toleransi_pulang_menit);
+                            return 'Mulai ' . $boleh->format('H:i') . ' WIB';
+                        }
+                        return 'Pukul ' . $pulang->format('H:i') . ' WIB';
+                    })
+                    ->description(fn ($record): string => ($record->toleransi_pulang_menit ?? 0) > 0 ? 'Toleransi ' . $record->toleransi_pulang_menit . ' mnt awal' : 'Wajib tepat jam pulang')
+                    ->badge()
+                    ->color('info'),
+
+                TextColumn::make('batas_akhir_pulang_menit')
+                    ->label('Batas Akhir Pulang (Closing)')
+                    ->formatStateUsing(function ($record) {
+                        $pulang = \Carbon\Carbon::createFromTimeString($record->jam_pulang);
+                        $akhir = $pulang->addMinutes($record->batas_akhir_pulang_menit ?? 120);
+                        return 's/d ' . $akhir->format('H:i') . ' WIB';
+                    })
+                    ->description(fn ($record): string => 'Maks ' . (($record->batas_akhir_pulang_menit ?? 120) / 60) . ' jam closing')
+                    ->badge()
+                    ->color('danger'),
+
                 IconColumn::make('lintas_hari')
                     ->label('Lintas Hari')
                     ->boolean(),

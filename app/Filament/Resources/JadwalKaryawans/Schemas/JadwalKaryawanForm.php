@@ -6,6 +6,7 @@ use App\Models\JadwalKaryawan;
 use Carbon\Carbon;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
@@ -61,14 +62,32 @@ class JadwalKaryawanForm
                     ->required()
                     ->visibleOn('create'),
 
-                Select::make('shift_id')
-                    ->label('Shift Kerja yang Ditetapkan')
-                    ->relationship('shift', 'nama_shift')
-                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->nama_shift} (" . Carbon::parse($record->jam_masuk)->format('H:i') . ' - ' . Carbon::parse($record->jam_pulang)->format('H:i') . ' WIB)')
-                    ->searchable()
-                    ->preload()
-                    ->helperText('Sistem otomatis menjadwalkan karyawan ini setiap hari kerja sesuai shift yang dipilih.')
-                    ->required(),
+                Grid::make(2)
+                    ->schema([
+                        Select::make('shift_id')
+                            ->label('Shift Kerja yang Ditetapkan')
+                            ->relationship('shift', 'nama_shift')
+                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->nama_shift} (" . Carbon::parse($record->jam_masuk)->format('H:i') . ' - ' . Carbon::parse($record->jam_pulang)->format('H:i') . ' WIB)')
+                            ->searchable()
+                            ->preload()
+                            ->helperText('Sistem otomatis menjadwalkan karyawan ini setiap hari kerja sesuai shift yang dipilih.')
+                            ->required(),
+
+                        Select::make('hari_libur_rutin')
+                            ->label('Hari Libur Rutin Mingguan (Off)')
+                            ->options([
+                                'senin' => 'Senin',
+                                'selasa' => 'Selasa',
+                                'rabu' => 'Rabu',
+                                'kamis' => 'Kamis',
+                                'jumat' => 'Jumat',
+                                'sabtu' => 'Sabtu',
+                                'minggu' => 'Minggu',
+                            ])
+                            ->default('senin')
+                            ->required()
+                            ->helperText('Jatah libur 1 hari seminggu. Pada hari ini karyawan tidak wajib absen dan tidak dihitung alpa.'),
+                    ]),
             ]);
     }
 }

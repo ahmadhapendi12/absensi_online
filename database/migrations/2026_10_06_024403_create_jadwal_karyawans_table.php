@@ -15,6 +15,7 @@ return new class extends Migration
         $table->uuid('id')->primary();
         $table->foreignUuid('user_id')->unique()->constrained('users')->cascadeOnDelete();
         $table->foreignUuid('shift_id')->constrained('master_shifts')->cascadeOnDelete();
+        $table->string('hari_libur_rutin')->default('minggu');
         $table->timestamps();
       });
     }

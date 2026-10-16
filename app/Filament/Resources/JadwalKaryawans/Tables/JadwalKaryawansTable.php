@@ -42,6 +42,12 @@ class JadwalKaryawansTable
                 TextColumn::make('shift.jam_masuk')
                     ->label('Jam Kerja')
                     ->formatStateUsing(fn ($record) => $record->shift ? (Carbon::parse($record->shift->jam_masuk)->format('H:i') . ' - ' . Carbon::parse($record->shift->jam_pulang)->format('H:i') . ' WIB') : '-'),
+                TextColumn::make('hari_libur_rutin')
+                    ->label('Libur Rutin')
+                    ->badge()
+                    ->color('danger')
+                    ->formatStateUsing(fn (?string $state): string => $state ? ucfirst($state) : 'Minggu')
+                    ->sortable(),
                 TextColumn::make('user.status')
                     ->label('Status Akun')
                     ->badge()
@@ -64,6 +70,17 @@ class JadwalKaryawansTable
                 SelectFilter::make('shift_id')
                     ->label('Filter Shift')
                     ->relationship('shift', 'nama_shift'),
+                SelectFilter::make('hari_libur_rutin')
+                    ->label('Filter Hari Libur')
+                    ->options([
+                        'senin' => 'Senin',
+                        'selasa' => 'Selasa',
+                        'rabu' => 'Rabu',
+                        'kamis' => 'Kamis',
+                        'jumat' => 'Jumat',
+                        'sabtu' => 'Sabtu',
+                        'minggu' => 'Minggu',
+                    ]),
                 SelectFilter::make('status')
                     ->label('Status Karyawan')
                     ->options([

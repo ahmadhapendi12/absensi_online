@@ -28,7 +28,6 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName('E-Absensi Lazatto')
-            ->login()
             ->colors([
                 'primary' => Color::Blue,
             ])

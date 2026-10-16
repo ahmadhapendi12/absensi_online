@@ -32,14 +32,20 @@ class PengajuanIzinsTable
                     ->color('info')
                     ->sortable(),
                 TextColumn::make('jenis')
-                    ->label('Jenis')
+                    ->label('Jenis Izin')
                     ->badge()
+                    ->weight('bold')
                     ->color(fn (string $state): string => match ($state) {
                         'Sakit' => 'danger',
                         'Izin' => 'warning',
                         'Cuti' => 'info',
                         default => 'gray',
-                    }),
+                    })
+                    ->description(function ($record): string {
+                        $hari = \Carbon\Carbon::parse($record->tanggal_mulai)->diffInDays(\Carbon\Carbon::parse($record->tanggal_selesai)) + 1;
+                        return $hari . ' hari';
+                    })
+                    ->sortable(),
                 TextColumn::make('tanggal_mulai')
                     ->label('Periode Izin')
                     ->formatStateUsing(function ($record) {

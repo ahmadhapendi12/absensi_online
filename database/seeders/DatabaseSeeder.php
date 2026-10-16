@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             PengajuanIzinSeeder::class,
             AbsensiSeeder::class,
             LemburSeeder::class,
+            AgendaLiburTokoSeeder::class,
         ]);
     }
 }

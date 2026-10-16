@@ -19,17 +19,23 @@ class JadwalKaryawanSeeder extends Seeder
         $shifts = MasterShift::all();
 
         if ($karyawans->count() > 0 && $shifts->count() > 0) {
-            // 1. Jadwal Karyawan 1 (Shift Pagi)
+            // 1. Jadwal Karyawan 1 (Shift Pagi, Libur Senin)
             JadwalKaryawan::firstOrCreate(
                 ['user_id' => $karyawans[0]->id],
-                ['shift_id' => $shifts[0]->id]
+                [
+                    'shift_id' => $shifts[0]->id,
+                    'hari_libur_rutin' => 'senin',
+                ]
             );
 
-            // 2. Jadwal Karyawan 2 (Shift Sore)
+            // 2. Jadwal Karyawan 2 (Shift Sore, Libur Selasa)
             if (isset($karyawans[1])) {
                 JadwalKaryawan::firstOrCreate(
                     ['user_id' => $karyawans[1]->id],
-                    ['shift_id' => isset($shifts[1]) ? $shifts[1]->id : $shifts[0]->id]
+                    [
+                        'shift_id' => isset($shifts[1]) ? $shifts[1]->id : $shifts[0]->id,
+                        'hari_libur_rutin' => 'selasa',
+                    ]
                 );
             }
         }

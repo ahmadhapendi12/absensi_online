@@ -49,12 +49,20 @@ class PengajuanController extends Controller
             'jam_selesai_aktual' => 'required',
         ]);
 
+        $start = \Carbon\Carbon::parse($request->jam_mulai_aktual);
+        $end = \Carbon\Carbon::parse($request->jam_selesai_aktual);
+        if ($end->lessThan($start)) {
+            $end->addDay();
+        }
+        $durasi = $start->diffInMinutes($end);
+
         Lembur::create([
             'user_id' => Auth::id(),
             'tanggal' => $request->tanggal,
             'alasan_lembur' => $request->alasan_lembur,
             'jam_mulai_aktual' => $request->jam_mulai_aktual,
             'jam_selesai_aktual' => $request->jam_selesai_aktual,
+            'durasi_menit' => $durasi,
             'status_pengajuan' => 'Pending'
         ]);
 

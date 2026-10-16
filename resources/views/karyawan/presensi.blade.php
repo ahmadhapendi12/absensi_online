@@ -25,14 +25,51 @@
     </div>
 </div>
 
+<!-- Banner Hari Libur / Agenda Toko -->
+@if(isset($isHariLibur) && $isHariLibur)
+<div class="px-6 mb-6">
+    <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-md border border-emerald-400">
+        <div class="flex items-start space-x-3">
+            <div class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-xl shrink-0">
+                @if(($tipeLibur ?? '') === 'jumsih' || ($tipeLibur ?? '') === 'kamsih')
+                    <i class="fas fa-broom"></i>
+                @else
+                    <i class="fas fa-umbrella-beach"></i>
+                @endif
+            </div>
+            <div>
+                <h3 class="font-black text-base tracking-wide">
+                    @if(($tipeLibur ?? '') === 'jumsih')
+                        Agenda Jumsih (Jumat Bersih)
+                    @elseif(($tipeLibur ?? '') === 'kamsih')
+                        Agenda Kamsih (Kamis Bersih)
+                    @else
+                        Hari Ini Jadwal Libur Anda!
+                    @endif
+                </h3>
+                <p class="text-xs text-emerald-100 mt-1 leading-relaxed">
+                    {{ $pesanLibur }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- Tombol Absen -->
 <div class="px-6 mb-6">
-    <button id="btn-masuk" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl mb-3 shadow-lg hover:bg-blue-700 active:scale-95 transition-all flex justify-center items-center">
-        <i class="fas fa-sign-in-alt mr-2 text-lg"></i> Absen Masuk
-    </button>
-    <button id="btn-pulang" class="w-full bg-white text-blue-600 border-2 border-blue-600 font-bold py-3.5 rounded-xl shadow-sm hover:bg-blue-50 active:scale-95 transition-all flex justify-center items-center">
-        <i class="fas fa-sign-out-alt mr-2 text-lg"></i> Absen Pulang
-    </button>
+    @if(isset($isHariLibur) && $isHariLibur)
+        <div class="w-full bg-gray-100 border border-gray-200 text-gray-600 font-bold py-3.5 rounded-xl mb-3 flex justify-center items-center text-sm shadow-inner">
+            <i class="fas fa-bed mr-2 text-emerald-600 text-base"></i> Hari Ini Libur (Tidak Perlu Presensi)
+        </div>
+    @else
+        <button id="btn-masuk" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl mb-3 shadow-lg hover:bg-blue-700 active:scale-95 transition-all flex justify-center items-center">
+            <i class="fas fa-sign-in-alt mr-2 text-lg"></i> Absen Masuk
+        </button>
+        <button id="btn-pulang" class="w-full bg-white text-blue-600 border-2 border-blue-600 font-bold py-3.5 rounded-xl shadow-sm hover:bg-blue-50 active:scale-95 transition-all flex justify-center items-center">
+            <i class="fas fa-sign-out-alt mr-2 text-lg"></i> Absen Pulang
+        </button>
+    @endif
 </div>
 
 <!-- Area Deteksi Wajah & Lokasi -->

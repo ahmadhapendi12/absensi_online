@@ -91,6 +91,15 @@ class FilamentAdminTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_superadmin_can_access_agenda_libur_toko_resource(): void
+    {
+        $user = $this->getSuperadmin();
+        $this->actingAs($user);
+
+        $response = $this->get('/admin/agenda-libur-tokos');
+        $response->assertStatus(200);
+    }
+
     public function test_superadmin_can_access_create_pages(): void
     {
         $user = $this->getSuperadmin();
@@ -103,6 +112,38 @@ class FilamentAdminTest extends TestCase
         $this->get('/admin/master-shifts/create')->assertStatus(200);
         $this->get('/admin/cabang-kantors/create')->assertStatus(200);
         $this->get('/admin/absensis/create')->assertStatus(200);
+        $this->get('/admin/agenda-libur-tokos/create')->assertStatus(200);
+    }
+
+    public function test_superadmin_can_access_edit_pages(): void
+    {
+        $user = $this->getSuperadmin();
+        $this->actingAs($user);
+
+        if ($record = \App\Models\User::first()) {
+            $this->get('/admin/users/' . $record->id . '/edit')->assertStatus(200);
+        }
+        if ($record = \App\Models\JadwalKaryawan::first()) {
+            $this->get('/admin/jadwal-karyawans/' . $record->id . '/edit')->assertStatus(200);
+        }
+        if ($record = \App\Models\Lembur::first()) {
+            $this->get('/admin/lemburs/' . $record->id . '/edit')->assertStatus(200);
+        }
+        if ($record = \App\Models\PengajuanIzin::first()) {
+            $this->get('/admin/pengajuan-izins/' . $record->id . '/edit')->assertStatus(200);
+        }
+        if ($record = \App\Models\MasterShift::first()) {
+            $this->get('/admin/master-shifts/' . $record->id . '/edit')->assertStatus(200);
+        }
+        if ($record = \App\Models\CabangKantor::first()) {
+            $this->get('/admin/cabang-kantors/' . $record->id . '/edit')->assertStatus(200);
+        }
+        if ($record = \App\Models\Absensi::first()) {
+            $this->get('/admin/absensis/' . $record->id . '/edit')->assertStatus(200);
+        }
+        if ($record = \App\Models\AgendaLiburToko::first()) {
+            $this->get('/admin/agenda-libur-tokos/' . $record->id . '/edit')->assertStatus(200);
+        }
     }
 
     public function test_superadmin_login_redirects_to_admin(): void
@@ -144,5 +185,105 @@ class FilamentAdminTest extends TestCase
         if ($karyawan->jadwal?->shift) {
             $response->assertSee($karyawan->jadwal->shift->nama_shift);
         }
+    }
+
+    public function test_karyawan_presensi_displays_holiday_when_off_day(): void
+    {
+        $dayMap = [
+            'sunday' => 'minggu',
+            'monday' => 'senin',
+            'tuesday' => 'selasa',
+            'wednesday' => 'rabu',
+            'thursday' => 'kamis',
+            'friday' => 'jumat',
+            'saturday' => 'sabtu',
+        ];
+        $todayIndo = $dayMap[strtolower(\Carbon\Carbon::now()->format('l'))] ?? 'senin';
+
+        $karyawan = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->first();
+        if ($karyawan->jadwal) {
+            $karyawan->jadwal->update(['hari_libur_rutin' => $todayIndo]);
+        }
+        $this->actingAs($karyawan);
+
+        $response = $this->get('/karyawan/presensi');
+        $response->assertStatus(200);
+        $response->assertSee('Hari Ini Jadwal Libur Anda!');
+        $response->assertSee('Tidak Perlu Presensi');
+    }
+
+    public function test_admin_login_url_redirects_to_unified_login(): void
+    {
+        $response = $this->get('/admin/login');
+        $response->assertRedirect('/login');
+    }
+
+    public function test_superadmin_can_export_pdf_report(): void
+    {
+        $user = $this->getSuperadmin();
+        $this->actingAs($user);
+
+        $response = $this->get('/laporan/export-pdf?tipe_periode=bulan&bulan=' . now()->month . '&tahun=' . now()->year);
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_karyawan_can_export_own_pdf_report(): void
+    {
+        $karyawan = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->first();
+        $this->actingAs($karyawan);
+
+        $response = $this->get('/laporan/export-pdf?tipe_periode=bulan&bulan=' . now()->month . '&tahun=' . now()->year);
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_karyawan_riwayat_renders_pdf_download_modal(): void
+    {
+        $karyawan = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->first();
+        $this->actingAs($karyawan);
+
+        $response = $this->get('/karyawan/riwayat');
+        $response->assertStatus(200);
+        $response->assertSee('Unduh PDF');
+        $response->assertSee('pdfModal');
+        $response->assertSee('Periode Presensi');
+    }
+
+    public function test_karyawan_lembur_page_renders_profile_card_and_time_inputs(): void
+    {
+        $karyawan = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->first();
+        $this->actingAs($karyawan);
+
+        $response = $this->get('/karyawan/pengajuan/lembur');
+        $response->assertStatus(200);
+        $response->assertSee('Karyawan Pemohon');
+        $response->assertSee($karyawan->name);
+        $response->assertSee('jam_mulai_input');
+        $response->assertSee('jam_selesai_input');
+        $response->assertSee('Total Durasi Lembur');
+    }
+
+    public function test_absensi_format_shows_exact_time_and_ongoing_status(): void
+    {
+        $karyawan = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->first();
+        $absensi = \App\Models\Absensi::create([
+            'user_id' => $karyawan->id,
+            'tanggal' => now()->toDateString(),
+            'jam_masuk' => '06:36:00',
+            'jam_pulang' => null,
+            'status_masuk' => 'Hadir',
+            'menit_terlambat' => 0,
+        ]);
+
+        $this->assertEquals('06:36 - ..', $absensi->format_jam_kerja);
+        $this->assertEquals('Sedang Berlangsung', $absensi->status_display);
+
+        // Setelah absen pulang
+        $absensi->update(['jam_pulang' => '15:00:00']);
+        $this->assertEquals('06:36 - 15:00', $absensi->format_jam_kerja);
+        $this->assertEquals('Hadir', $absensi->status_display);
+
+        $absensi->delete();
     }
 }

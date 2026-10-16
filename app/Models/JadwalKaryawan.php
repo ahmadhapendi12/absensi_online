@@ -10,7 +10,7 @@ class JadwalKaryawan extends Model
     use HasUuids;
 
     protected $fillable = [
-        'user_id', 'shift_id'
+        'user_id', 'shift_id', 'hari_libur_rutin'
     ];
 
     public function user()
