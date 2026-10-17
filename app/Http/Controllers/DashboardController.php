@@ -24,7 +24,7 @@ class DashboardController extends Controller
         
         // 2. Jika yang login adalah Karyawan
         elseif ($user->hasRole('karyawan')) {
-            return redirect()->route('karyawan.presensi.create');
+            return redirect('/karyawan');
         }
 
         // 3. Jika role tidak valid, paksa logout

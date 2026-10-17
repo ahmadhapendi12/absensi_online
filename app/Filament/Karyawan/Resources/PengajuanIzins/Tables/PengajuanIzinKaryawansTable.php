@@ -13,9 +13,10 @@ class PengajuanIzinKaryawansTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->striped()
             ->columns([
                 TextColumn::make('jenis')
-                    ->label('Jenis Izin')
+                    ->label('Jenis & Periode')
                     ->badge()
                     ->weight('bold')
                     ->color(fn (string $state): string => match ($state) {
@@ -25,8 +26,13 @@ class PengajuanIzinKaryawansTable
                         default => 'gray',
                     })
                     ->description(function ($record): string {
+                        $mulai = \Carbon\Carbon::parse($record->tanggal_mulai)->format('d M Y');
                         $hari = \Carbon\Carbon::parse($record->tanggal_mulai)->diffInDays(\Carbon\Carbon::parse($record->tanggal_selesai)) + 1;
-                        return $hari . ' hari';
+                        if ($record->tanggal_mulai === $record->tanggal_selesai) {
+                            return "{$mulai} • {$hari} hari";
+                        }
+                        $selesai = \Carbon\Carbon::parse($record->tanggal_selesai)->format('d M Y');
+                        return "{$mulai} - {$selesai} ({$hari} hari)";
                     })
                     ->sortable(),
 
@@ -40,12 +46,8 @@ class PengajuanIzinKaryawansTable
                         $selesai = \Carbon\Carbon::parse($record->tanggal_selesai)->format('d M Y');
                         return "{$mulai} - {$selesai}";
                     })
+                    ->visibleFrom('md')
                     ->sortable(),
-
-                TextColumn::make('alasan')
-                    ->label('Alasan')
-                    ->limit(30)
-                    ->tooltip(fn ($record) => $record->alasan),
 
                 TextColumn::make('status')
                     ->label('Status')
@@ -54,11 +56,21 @@ class PengajuanIzinKaryawansTable
                         'Disetujui' => 'success',
                         'Ditolak' => 'danger',
                         default => 'warning',
-                    }),
+                    })
+                    ->description(fn ($record) => $record->penyetuju ? 'Oleh: ' . $record->penyetuju->name : null),
+
+                TextColumn::make('alasan')
+                    ->label('Alasan')
+                    ->limit(25)
+                    ->tooltip(fn ($record) => $record->alasan)
+                    ->visibleFrom('md')
+                    ->toggleable(),
 
                 TextColumn::make('penyetuju.name')
                     ->label('Diproses Oleh')
-                    ->placeholder('Menunggu Persetujuan'),
+                    ->placeholder('Menunggu')
+                    ->visibleFrom('lg')
+                    ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('status')
@@ -75,9 +87,13 @@ class PengajuanIzinKaryawansTable
                     ]),
             ])
             ->recordActions([
-                ViewAction::make(),
+                ViewAction::make()
+                    ->iconButton()
+                    ->tooltip('Lihat Detail'),
                 DeleteAction::make()
                     ->label('Batalkan')
+                    ->iconButton()
+                    ->tooltip('Batalkan Pengajuan')
                     ->visible(fn ($record) => $record->status === 'Pending'),
             ]);
     }

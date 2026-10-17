@@ -28,6 +28,34 @@ class KaryawanPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
+            ->sidebarCollapsibleOnDesktop()
+            ->maxContentWidth('7xl')
+            ->navigationGroups([
+                'Menu Utama',
+                'Pengajuan',
+                'Laporan',
+                'Pengaturan',
+            ])
+            ->userMenuItems([
+                \Filament\Navigation\MenuItem::make()
+                    ->label('Profil Saya')
+                    ->url(fn (): string => \App\Filament\Karyawan\Pages\ProfilKaryawan::getUrl())
+                    ->icon('heroicon-o-user-circle'),
+            ])
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::HEAD_END,
+                function (): \Illuminate\Support\HtmlString {
+                    $manifestPath = public_path('build/manifest.json');
+                    if (file_exists($manifestPath)) {
+                        $manifest = json_decode(file_get_contents($manifestPath), true);
+                        $cssFile = $manifest['resources/css/app.css']['file'] ?? null;
+                        if ($cssFile) {
+                            return new \Illuminate\Support\HtmlString('<link rel="stylesheet" href="/build/' . $cssFile . '">');
+                        }
+                    }
+                    return new \Illuminate\Support\HtmlString('');
+                }
+            )
             ->discoverResources(in: app_path('Filament/Karyawan/Resources'), for: 'App\Filament\Karyawan\Resources')
             ->discoverPages(in: app_path('Filament/Karyawan/Pages'), for: 'App\Filament\Karyawan\Pages')
             ->pages([

@@ -51,10 +51,23 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
 
     public function getAvatarUrlAttribute(): string
     {
-        if ($this->profile?->foto_wajah_acuan) {
+        if ($this->profile?->foto_wajah_acuan && file_exists(public_path('storage/' . $this->profile->foto_wajah_acuan))) {
             return asset('storage/' . $this->profile->foto_wajah_acuan);
         }
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=FFE5E5&color=C53030';
+
+        $initials = collect(explode(' ', $this->name))
+            ->filter()
+            ->map(fn ($segment) => mb_substr($segment, 0, 1))
+            ->take(2)
+            ->join('');
+        $initials = strtoupper($initials ?: 'U');
+
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">'
+            . '<rect width="100" height="100" rx="50" fill="#fef3c7"/>'
+            . '<text x="50" y="55" font-family="sans-serif" font-size="38" font-weight="700" fill="#b45309" text-anchor="middle" dominant-baseline="middle">' . htmlspecialchars($initials) . '</text>'
+            . '</svg>';
+
+        return 'data:image/svg+xml;utf8,' . rawurlencode($svg);
     }
 
     public function getNikAttribute(): ?string

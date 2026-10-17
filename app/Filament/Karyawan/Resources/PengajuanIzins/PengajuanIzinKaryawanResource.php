@@ -8,6 +8,7 @@ use App\Filament\Karyawan\Resources\PengajuanIzins\Schemas\PengajuanIzinKaryawan
 use App\Filament\Karyawan\Resources\PengajuanIzins\Tables\PengajuanIzinKaryawansTable;
 use App\Models\PengajuanIzin;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -21,13 +22,15 @@ class PengajuanIzinKaryawanResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
-    protected static ?string $navigationLabel = 'Pengajuan Izin';
+    protected static UnitEnum|string|null $navigationGroup = 'Pengajuan';
+
+    protected static ?string $navigationLabel = 'Pengajuan Izin / Cuti';
 
     protected static ?string $modelLabel = 'Pengajuan Izin';
 
     protected static ?string $pluralModelLabel = 'Pengajuan Izin / Cuti';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 1;
 
     public static function getEloquentQuery(): Builder
     {

@@ -14,6 +14,8 @@ class KaryawanStatistikWidget extends StatsOverviewWidget
 {
     protected static ?int $sort = 2;
 
+    protected static bool $isLazy = false;
+
     protected function getStats(): array
     {
         $user = Auth::user();
@@ -59,18 +61,22 @@ class KaryawanStatistikWidget extends StatsOverviewWidget
         return [
             Stat::make('Hadir Tepat Waktu', "{$tepatWaktu} Hari")
                 ->description('Bulan ' . Carbon::now()->translatedFormat('F Y'))
+                ->descriptionIcon('heroicon-m-check-badge')
                 ->color('success'),
 
             Stat::make('Keterlambatan', "{$terlambat} Kali")
                 ->description('Total terlambat bulan ini')
+                ->descriptionIcon('heroicon-m-clock')
                 ->color($terlambat > 0 ? 'warning' : 'gray'),
 
             Stat::make('Izin / Sakit Disetujui', "{$totalIzin} Kali")
                 ->description('Pengajuan resmi bulan ini')
+                ->descriptionIcon('heroicon-m-document-check')
                 ->color('info'),
 
             Stat::make('Total Jam Lembur', "{$jamLembur} Jam")
                 ->description("{$totalMenitLembur} menit disetujui")
+                ->descriptionIcon('heroicon-m-briefcase')
                 ->color('primary'),
         ];
     }

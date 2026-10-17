@@ -17,7 +17,7 @@ class AuthController extends Controller
             if ($user->hasRole('superadmin')) {
                 return redirect('/admin');
             }
-            return redirect()->route('karyawan.presensi.create');
+            return redirect('/karyawan');
         }
 
         return view('login');
@@ -60,7 +60,7 @@ class AuthController extends Controller
                 return redirect('/admin');
             }
 
-            return redirect()->route('karyawan.presensi.create');
+            return redirect('/karyawan');
         }
 
         return back()->withErrors([

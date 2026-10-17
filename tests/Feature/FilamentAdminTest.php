@@ -163,7 +163,7 @@ class FilamentAdminTest extends TestCase
             'password' => 'password123',
         ]);
 
-        $response->assertRedirect(route('karyawan.presensi.create'));
+        $response->assertRedirect('/karyawan');
     }
 
     public function test_karyawan_cannot_access_filament_admin(): void

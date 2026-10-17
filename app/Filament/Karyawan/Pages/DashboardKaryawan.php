@@ -12,6 +12,8 @@ class DashboardKaryawan extends BaseDashboard
 
     protected static ?string $navigationLabel = 'Dashboard';
 
+    protected static ?int $navigationSort = 1;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHome;
 
     public function getWidgets(): array
@@ -19,6 +21,7 @@ class DashboardKaryawan extends BaseDashboard
         return [
             \App\Filament\Karyawan\Widgets\KaryawanInfoWidget::class,
             \App\Filament\Karyawan\Widgets\KaryawanStatistikWidget::class,
+            \App\Filament\Karyawan\Widgets\KaryawanRecentAbsensiWidget::class,
         ];
     }
 }

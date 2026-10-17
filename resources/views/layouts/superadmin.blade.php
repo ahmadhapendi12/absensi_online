@@ -18,7 +18,7 @@
         
         <!-- PROFIL SUPERADMIN (Di dalam Sidebar) -->
         <div class="p-6 border-b border-red-800/50 flex items-center gap-4 bg-white/5 mx-4 mt-6 rounded-2xl">
-            <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=FFE5E5&color=C53030" class="w-12 h-12 rounded-full border-2 border-red-500">
+            <img src="{{ Auth::user()->avatar_url }}" class="w-12 h-12 rounded-full border-2 border-red-500">
             <div class="overflow-hidden">
                 <p class="text-sm font-bold text-white truncate">{{ Auth::user()->name }}</p>
                 <p class="text-xs text-red-300 truncate">{{ Auth::user()->email }}</p>

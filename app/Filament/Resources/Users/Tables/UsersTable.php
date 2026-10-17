@@ -22,7 +22,7 @@ class UsersTable
                     ->label('Foto')
                     ->circular()
                     ->disk('public')
-                    ->defaultImageUrl(fn (User $record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&background=FFE5E5&color=C53030'),
+                    ->defaultImageUrl(fn (User $record) => $record->avatar_url),
                 TextColumn::make('profile.nik')
                     ->label('NIK')
                     ->placeholder('-')
