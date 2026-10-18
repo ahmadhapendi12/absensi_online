@@ -25,7 +25,11 @@ class RekapPresensiKaryawansTable
 
                 TextColumn::make('jadwal.shift.nama_shift')
                     ->label('Shift Kerja')
-                    ->placeholder('Reguler')
+                    ->getStateUsing(function ($record) {
+                        return $record->jadwal?->shift?->nama_shift 
+                            ?? $record->user?->jadwal?->shift?->nama_shift 
+                            ?? 'Shift Standar';
+                    })
                     ->badge()
                     ->color('gray')
                     ->visibleFrom('sm'),
@@ -51,14 +55,22 @@ class RekapPresensiKaryawansTable
 
                 TextColumn::make('menit_terlambat')
                     ->label('Keterlambatan')
-                    ->formatStateUsing(function ($state) {
+                    ->formatStateUsing(function ($state, $record) {
+                        if (in_array($record->status_masuk, ['Izin', 'Sakit', 'Cuti', 'Alpha']) || !$record->jam_masuk) {
+                            return '-';
+                        }
                         if (!$state || $state <= 0) {
                             return 'Tepat Waktu';
                         }
                         return "{$state} Menit";
                     })
                     ->badge()
-                    ->color(fn ($state) => $state > 0 ? 'warning' : 'success')
+                    ->color(function ($state, $record) {
+                        if (in_array($record->status_masuk, ['Izin', 'Sakit', 'Cuti', 'Alpha']) || !$record->jam_masuk) {
+                            return 'gray';
+                        }
+                        return $state > 0 ? 'warning' : 'success';
+                    })
                     ->visibleFrom('md')
                     ->toggleable(),
 

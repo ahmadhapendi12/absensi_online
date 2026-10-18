@@ -50,10 +50,10 @@ class PresensiController extends Controller
             })
             ->first();
 
-        if ($agendaToko) {
+        if ($agendaToko && !$isHariLibur) {
             $isHariLibur = true;
             $tipeLibur = $agendaToko->jenis;
-            $pesanLibur = "Hari ini agenda [{$agendaToko->nama_agenda}]" . ($agendaToko->keterangan ? ": {$agendaToko->keterangan}" : '.');
+            $pesanLibur = trim("Hari ini agenda {$agendaToko->nama_agenda}. " . ($agendaToko->keterangan ?? ''));
         }
 
         return view('karyawan.presensi', compact('jadwal', 'isHariLibur', 'pesanLibur', 'tipeLibur', 'agendaToko'));

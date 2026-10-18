@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -67,6 +68,10 @@ class UserForm
                             ->placeholder('Contoh: 12345678')
                             ->required()
                             ->maxLength(30),
+                        DatePicker::make('tanggal_bergabung')
+                            ->label('Tanggal Mulai Bergabung / Masuk Kerja')
+                            ->displayFormat('d/m/Y')
+                            ->helperText('Tanggal resmi karyawan mulai bekerja di kios (menentukan awal mulai aktifnya jadwal shift di kalender).'),
                         TextInput::make('telphone')
                             ->label('Nomor HP / WhatsApp')
                             ->placeholder('Contoh: 081234567890')

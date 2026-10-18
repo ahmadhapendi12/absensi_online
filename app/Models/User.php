@@ -90,4 +90,9 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     {
         return $this->hasOne(JadwalKaryawan::class, 'user_id');
     }
+
+    public function riwayatJadwals()
+    {
+        return $this->hasMany(RiwayatJadwalKaryawan::class, 'user_id')->orderBy('berlaku_dari', 'asc');
+    }
 }

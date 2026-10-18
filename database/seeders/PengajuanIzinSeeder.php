@@ -11,59 +11,46 @@ class PengajuanIzinSeeder extends Seeder
 {
     public function run(): void
     {
-        $karyawans = User::whereHas('roles', function($q) {
-            $q->where('name', 'karyawan');
-        })->get();
+        PengajuanIzin::query()->delete();
+
+        $budi = User::where('email', 'karyawan@gmail.com')->first();
+        $siti = User::where('email', 'siti@gmail.com')->first();
 
         $superadmin = User::whereHas('roles', function($q) {
             $q->whereIn('name', ['superadmin', 'super_admin']);
         })->first();
 
-        if ($karyawans->count() > 0) {
-            // 1. Pengajuan Sakit (Pending)
-            PengajuanIzin::firstOrCreate(
+        // 1. Pengajuan Cuti Disetujui (Budi Santoso - 22 s/d 23 Oktober 2026)
+        if ($budi) {
+            PengajuanIzin::updateOrCreate(
                 [
-                    'user_id' => $karyawans[0]->id,
-                    'tanggal_mulai' => Carbon::now()->addDays(3)->toDateString(),
-                ],
-                [
-                    'jenis' => 'Sakit',
-                    'tanggal_selesai' => Carbon::now()->addDays(4)->toDateString(),
-                    'alasan' => 'Demam dan flu tinggi',
-                    'status' => 'Pending',
-                ]
-            );
-
-            // 2. Pengajuan Cuti (Disetujui)
-            PengajuanIzin::firstOrCreate(
-                [
-                    'user_id' => $karyawans[0]->id,
-                    'tanggal_mulai' => Carbon::now()->addDays(10)->toDateString(),
+                    'user_id' => $budi->id,
+                    'tanggal_mulai' => '2026-10-22',
                 ],
                 [
                     'jenis' => 'Cuti',
-                    'tanggal_selesai' => Carbon::now()->addDays(12)->toDateString(),
-                    'alasan' => 'Acara keluarga di kampung',
+                    'tanggal_selesai' => '2026-10-23',
+                    'alasan' => 'Acara syukuran keluarga di luar kota',
                     'status' => 'Disetujui',
                     'disetujui_oleh' => $superadmin ? $superadmin->id : null,
                 ]
             );
+        }
 
-            // 3. Pengajuan Izin Karyawan 2 (Pending)
-            if (isset($karyawans[1])) {
-                PengajuanIzin::firstOrCreate(
-                    [
-                        'user_id' => $karyawans[1]->id,
-                        'tanggal_mulai' => Carbon::now()->addDays(5)->toDateString(),
-                    ],
-                    [
-                        'jenis' => 'Izin',
-                        'tanggal_selesai' => Carbon::now()->addDays(5)->toDateString(),
-                        'alasan' => 'Mengurus perpanjangan SIM',
-                        'status' => 'Pending',
-                    ]
-                );
-            }
+        // 2. Pengajuan Izin Pending (Siti Rahma - 26 Oktober 2026)
+        if ($siti) {
+            PengajuanIzin::updateOrCreate(
+                [
+                    'user_id' => $siti->id,
+                    'tanggal_mulai' => '2026-10-26',
+                ],
+                [
+                    'jenis' => 'Izin',
+                    'tanggal_selesai' => '2026-10-26',
+                    'alasan' => 'Perpanjangan SIM di layanan Samsat Keliling',
+                    'status' => 'Pending',
+                ]
+            );
         }
     }
 }

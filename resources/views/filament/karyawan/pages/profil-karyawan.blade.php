@@ -169,46 +169,69 @@
                     Foto wajah acuan ini menjadi data master agar sistem dapat memvalidasi bahwa yang melakukan presensi di toko adalah Anda.
                 </p>
 
-                <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border-radius: 0.75rem; border: 1px solid rgba(156, 163, 175, 0.25); background: rgba(156, 163, 175, 0.05);">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        @if($profile?->foto_wajah_acuan && file_exists(public_path('storage/' . $profile->foto_wajah_acuan)))
-                            <img 
-                                src="{{ asset('storage/' . $profile->foto_wajah_acuan) }}" 
-                                alt="Foto Master" 
-                                style="width: 64px; height: 64px; border-radius: 0.5rem; object-fit: cover; border: 2px solid #10b981;"
-                            >
-                            <div>
-                                <div style="display: flex; align-items: center; gap: 0.375rem;">
-                                    <span style="width: 8px; height: 8px; border-radius: 9999px; background: #10b981;"></span>
-                                    <strong style="font-size: 0.875rem; color: #059669;">Wajah Acuan Master Terdaftar</strong>
-                                </div>
-                                <span style="font-size: 0.75rem; opacity: 0.75; display: block; margin-top: 2px;">Data wajah siap digunakan untuk verifikasi presensi harian.</span>
+                @if($profile?->is_biometric_locked && $profile?->foto_wajah_acuan)
+                    <!-- STATUS BIOMETRIK TERKUNCI & TERVERIFIKASI -->
+                    <div style="padding: 1.25rem; border-radius: 0.875rem; border: 1.5px solid rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem;">
+                        <div style="display: flex; align-items: center; gap: 1.25rem;">
+                            <div style="position: relative;">
+                                <img 
+                                    src="{{ asset('storage/' . $profile->foto_wajah_acuan) }}" 
+                                    alt="Foto Master" 
+                                    style="width: 72px; height: 72px; border-radius: 0.625rem; object-fit: cover; border: 3px solid #10b981; box-shadow: 0 4px 10px -2px rgba(16, 185, 129, 0.35);"
+                                >
+                                <span style="position: absolute; bottom: -4px; right: -4px; width: 20px; height: 20px; background-color: #10b981; border: 2px solid white; border-radius: 9999px; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: bold;">✓</span>
                             </div>
-                        @else
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <strong style="font-size: 1rem; color: #059669;">Biometrik Wajah Terverifikasi Resmi</strong>
+                                    <span style="padding: 0.125rem 0.5rem; border-radius: 0.375rem; font-size: 0.6875rem; font-weight: 700; background: #10b981; color: white;">
+                                        Terkunci
+                                    </span>
+                                </div>
+                                <div style="font-size: 0.8125rem; opacity: 0.85; margin-top: 0.25rem;">
+                                    Didaftarkan: <strong>{{ $profile->wajah_terverifikasi_at ? \Carbon\Carbon::parse($profile->wajah_terverifikasi_at)->translatedFormat('l, d F Y H:i') . ' WIB' : 'Telah Terverifikasi' }}</strong>
+                                </div>
+                                <p style="font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0 0; max-width: 480px; line-height: 1.4;">
+                                    🔒 Data wajah acuan ini telah dikunci permanen oleh sistem dan tidak dapat diubah sembarangan. Hubungi Super Admin jika membutuhkan pembukaan kunci verifikasi ulang.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 0.875rem; border-radius: 0.5rem; font-size: 0.8125rem; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3);">
+                                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                                Anti-Manipulasi Aktif
+                            </span>
+                        </div>
+                    </div>
+                @else
+                    <!-- BELUM ADA MASTER / KARYAWAN BARU WAJIB ENROLL -->
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border-radius: 0.75rem; border: 1.5px dashed #f59e0b; background: rgba(245, 158, 11, 0.05);">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
                             <div style="width: 64px; height: 64px; border-radius: 0.5rem; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center; color: #d97706; flex-shrink: 0;">
                                 <svg style="width: 32px; height: 32px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                             </div>
                             <div>
                                 <div style="display: flex; align-items: center; gap: 0.375rem;">
                                     <span style="width: 8px; height: 8px; border-radius: 9999px; background: #f59e0b;"></span>
-                                    <strong style="font-size: 0.875rem; color: #d97706;">Wajah Master Belum Didaftarkan</strong>
+                                    <strong style="font-size: 0.875rem; color: #d97706;">Wajah Master Belum Terdaftar (Wajib)</strong>
                                 </div>
-                                <span style="font-size: 0.75rem; opacity: 0.75; display: block; margin-top: 2px;">Wajib rekam wajah bagi karyawan baru sebelum mulai presensi.</span>
+                                <span style="font-size: 0.75rem; opacity: 0.85; display: block; margin-top: 2px;">Sebagai karyawan baru, Anda wajib merekam foto wajah acuan agar dapat melakukan absensi harian.</span>
                             </div>
-                        @endif
-                    </div>
+                        </div>
 
-                    <button 
-                        type="button" 
-                        id="btn-toggle-enroll-cam"
-                        style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.8125rem; font-weight: 700; background: #f59e0b; color: white; border: none; cursor: pointer; transition: background 0.2s;"
-                        onmouseover="this.style.backgroundColor='#d97706'"
-                        onmouseout="this.style.backgroundColor='#f59e0b'"
-                    >
-                        <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
-                        <span>{{ $profile?->foto_wajah_acuan ? 'Rekam Ulang Wajah Master' : 'Buka Kamera & Rekam Wajah' }}</span>
-                    </button>
-                </div>
+                        <button 
+                            type="button" 
+                            id="btn-toggle-enroll-cam"
+                            style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.25rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 700; background: #f59e0b; color: white; border: none; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.35);"
+                            onmouseover="this.style.backgroundColor='#d97706'"
+                            onmouseout="this.style.backgroundColor='#f59e0b'"
+                        >
+                            <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                            <span>Buka Kamera & Rekam Wajah Acuan</span>
+                        </button>
+                    </div>
+                @endif
 
                 <!-- Box Kamera Perekaman Wajah Master (Toggleable) -->
                 <div id="enroll-cam-box" style="display: none; margin-top: 1.25rem; padding: 1.25rem; border-radius: 0.75rem; background: rgba(0, 0, 0, 0.03); border: 1px dashed #f59e0b;">

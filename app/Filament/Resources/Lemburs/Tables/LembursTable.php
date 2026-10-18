@@ -34,8 +34,13 @@ class LembursTable
                     ->sortable(),
                 TextColumn::make('jam_mulai_aktual')
                     ->label('Waktu Lembur')
-                    ->formatStateUsing(fn ($record) => ($record->jam_mulai_aktual ? \Carbon\Carbon::parse($record->jam_mulai_aktual)->format('H:i') : '-') . ' - ' . ($record->jam_selesai_aktual ? \Carbon\Carbon::parse($record->jam_selesai_aktual)->format('H:i') : '-'))
-                    ->description(fn ($record): string => ($record->durasi_menit ?? 0) . ' Menit'),
+                    ->formatStateUsing(fn ($record) => ($record->jam_mulai_aktual ? \Carbon\Carbon::parse($record->jam_mulai_aktual)->format('H:i') : '-') . ' - ' . ($record->jam_selesai_aktual ? \Carbon\Carbon::parse($record->jam_selesai_aktual)->format('H:i') : '-')),
+                TextColumn::make('durasi_menit')
+                    ->label('Durasi')
+                    ->formatStateUsing(fn ($state) => round($state / 60, 1) . ' Jam')
+                    ->badge()
+                    ->color('info')
+                    ->sortable(),
                 TextColumn::make('status_pengajuan')
                     ->label('Status')
                     ->badge()

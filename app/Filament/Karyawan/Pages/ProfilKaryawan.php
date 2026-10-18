@@ -76,9 +76,18 @@ class ProfilKaryawan extends Page
             ->send();
     }
 
-    public function simpanFotoWajahMaster(string $fotoBase64): void
+    public function simpanFotoWajahMaster(string $fotoBase64, ?string $descriptorJson = null): void
     {
         $user = Auth::user();
+
+        if ($user->profile?->is_biometric_locked) {
+            Notification::make()
+                ->title('Biometrik Wajah Sudah Terkunci!')
+                ->body('Data wajah acuan Anda telah diverifikasi dan dikunci permanen. Hubungi Super Admin jika ingin memperbarui wajah.')
+                ->warning()
+                ->send();
+            return;
+        }
 
         if (empty($fotoBase64) || !str_contains($fotoBase64, 'base64,')) {
             Notification::make()
@@ -104,12 +113,16 @@ class ProfilKaryawan extends Page
         if ($user->profile) {
             $user->profile->update([
                 'foto_wajah_acuan' => $path,
+                'wajah_terverifikasi_at' => now(),
+                'is_biometric_locked' => true,
+                'face_descriptor' => $descriptorJson,
+                'catatan_biometrik' => 'Perekaman mandiri awal via portal karyawan',
             ]);
         }
 
         Notification::make()
-            ->title('Foto Wajah Acuan Master Berhasil Terdaftar!')
-            ->body('Foto wajah Anda berhasil disimpan sebagai identitas biometrik resmi untuk presensi.')
+            ->title('Foto Wajah Acuan Master Berhasil Terverifikasi & Terkunci!')
+            ->body('Foto wajah Anda berhasil diverifikasi sebagai acuan biometrik resmi untuk presensi dan telah dikunci demi keamanan.')
             ->success()
             ->send();
     }

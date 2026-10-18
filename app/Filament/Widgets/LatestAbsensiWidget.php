@@ -59,9 +59,19 @@ class LatestAbsensiWidget extends TableWidget
                     }),
                 TextColumn::make('menit_terlambat')
                     ->label('Keterlambatan')
-                    ->formatStateUsing(fn ($state) => $state > 0 ? "{$state} menit" : 'Tepat Waktu')
+                    ->formatStateUsing(function ($state, $record) {
+                        if (in_array($record->status_masuk, ['Izin', 'Sakit', 'Cuti', 'Alpha']) || !$record->jam_masuk) {
+                            return '-';
+                        }
+                        return $state > 0 ? "{$state} menit" : 'Tepat Waktu';
+                    })
                     ->badge()
-                    ->color(fn ($state) => $state > 0 ? 'danger' : 'success'),
+                    ->color(function ($state, $record) {
+                        if (in_array($record->status_masuk, ['Izin', 'Sakit', 'Cuti', 'Alpha']) || !$record->jam_masuk) {
+                            return 'gray';
+                        }
+                        return $state > 0 ? 'danger' : 'success';
+                    }),
             ])
             ->paginated([5, 10]);
     }

@@ -56,6 +56,9 @@ class Absensi extends Model
 
     public function getFormatJamKerjaAttribute(): string
     {
+        if (!$this->jam_masuk && !$this->jam_pulang) {
+            return '-';
+        }
         $masuk = $this->jam_masuk ? \Carbon\Carbon::parse($this->jam_masuk)->format('H:i') : '-';
         if ($this->jam_masuk && !$this->jam_pulang) {
             if ($this->status_display === 'Tidak Absen Pulang') {

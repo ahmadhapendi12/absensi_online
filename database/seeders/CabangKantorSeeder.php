@@ -26,14 +26,5 @@ class CabangKantorSeeder extends Seeder
                 'radius_meter' => 150
             ]
         );
-
-        CabangKantor::firstOrCreate(
-            ['nama_cabang' => 'Cabang Surabaya'],
-            [
-                'latitude' => '-7.2575',
-                'longitude' => '112.7521',
-                'radius_meter' => 200
-            ]
-        );
     }
 }

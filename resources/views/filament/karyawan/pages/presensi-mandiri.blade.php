@@ -93,6 +93,48 @@
         }
     </style>
 
+    <!-- BANNER PERMINTAAN IZIN KAMERA & LOKASI (SELALU MUNCUL JIKA BELUM ALLOW) -->
+    <div id="persistent-permission-bar" style="display: none; margin-bottom: 1.25rem; padding: 1.25rem; border-radius: 1rem; background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(239, 68, 68, 0.08)); border: 1.5px solid rgba(245, 158, 11, 0.4); box-shadow: 0 4px 15px -3px rgba(245, 158, 11, 0.15);">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+            <div style="display: flex; align-items: flex-start; gap: 0.875rem;">
+                <div style="width: 44px; height: 44px; border-radius: 9999px; background: rgba(245, 158, 11, 0.2); color: #d97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <div>
+                    <strong style="font-size: 0.9375rem; display: block; color: inherit;">Akses Kamera & Lokasi Diperlukan untuk Presensi</strong>
+                    <span style="font-size: 0.8125rem; opacity: 0.85;">Aplikasi memerlukan izin Kamera (deteksi wajah) dan GPS (verifikasi radius kantor). Jika prompt browser tertutup atau tidak sengaja kepencet silang, klik tombol di sebelah kanan:</span>
+                    
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+                        <span id="perm-cam-badge" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; background: rgba(239, 68, 68, 0.15); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3);">
+                            📷 Kamera: Memeriksa...
+                        </span>
+                        <span id="perm-gps-badge" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; background: rgba(239, 68, 68, 0.15); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3);">
+                            📍 GPS: Memeriksa...
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+                <button 
+                    type="button" 
+                    id="btn-trigger-all-permissions" 
+                    style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.125rem; border-radius: 0.625rem; font-size: 0.8125rem; font-weight: 700; background: #f59e0b; color: white; border: none; cursor: pointer; box-shadow: 0 4px 8px -1px rgba(245, 158, 11, 0.35);"
+                >
+                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
+                    Izinkan Kamera & GPS
+                </button>
+                <button 
+                    type="button" 
+                    onclick="document.getElementById('fallback-camera-input').click()" 
+                    style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.625rem 0.875rem; border-radius: 0.625rem; font-size: 0.8125rem; font-weight: 600; background: rgba(156, 163, 175, 0.15); color: inherit; border: 1px solid rgba(156, 163, 175, 0.3); cursor: pointer;"
+                >
+                    📸 Kamera HP (Bypass)
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="presensi-container">
 
         <!-- KOLOM KIRI: KAMERA VIEWFINDER / BANNER LIBUR -->
@@ -393,6 +435,12 @@
                 const gpsIcon = document.getElementById('gps-icon');
                 const btnSimulateGps = document.getElementById('btn-simulate-gps');
 
+                // Elemen Persistent Permission Bar
+                const persistentPermBar = document.getElementById('persistent-permission-bar');
+                const permCamBadge = document.getElementById('perm-cam-badge');
+                const permGpsBadge = document.getElementById('perm-gps-badge');
+                const btnTriggerPerms = document.getElementById('btn-trigger-all-permissions');
+
                 if (!video) return;
 
                 const targetLat = {{ $cabang?->latitude ?? -6.9175 }};
@@ -404,6 +452,72 @@
                 let isWithinRadius = false;
                 let capturedPhotoBase64 = null;
                 let streamInstance = null;
+
+                let isCameraAllowed = false;
+                let isGpsAllowed = false;
+
+                function updatePersistentPermissionBar() {
+                    if (!persistentPermBar) return;
+
+                    if (permCamBadge) {
+                        if (isCameraAllowed) {
+                            permCamBadge.innerHTML = '📷 Kamera: Diizinkan ✓';
+                            permCamBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+                            permCamBadge.style.color = '#059669';
+                            permCamBadge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                        } else {
+                            permCamBadge.innerHTML = '📷 Kamera: Belum Diizinkan ⚠️';
+                            permCamBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+                            permCamBadge.style.color = '#dc2626';
+                            permCamBadge.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                        }
+                    }
+
+                    if (permGpsBadge) {
+                        if (isGpsAllowed) {
+                            permGpsBadge.innerHTML = '📍 GPS: Diizinkan ✓';
+                            permGpsBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+                            permGpsBadge.style.color = '#059669';
+                            permGpsBadge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                        } else {
+                            permGpsBadge.innerHTML = '📍 GPS: Belum Diizinkan ⚠️';
+                            permGpsBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+                            permGpsBadge.style.color = '#dc2626';
+                            permGpsBadge.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                        }
+                    }
+
+                    // Tampilkan terus selama belum allow dua-duanya
+                    if (isCameraAllowed && isGpsAllowed) {
+                        persistentPermBar.style.display = 'none';
+                    } else {
+                        persistentPermBar.style.display = 'block';
+                    }
+                }
+
+                // Initial state check
+                updatePersistentPermissionBar();
+
+                // Query permission API jika didukung browser
+                if (navigator.permissions && navigator.permissions.query) {
+                    navigator.permissions.query({ name: 'camera' }).then(res => {
+                        if (res.state === 'granted') isCameraAllowed = true;
+                        updatePersistentPermissionBar();
+                        res.onchange = () => {
+                            isCameraAllowed = res.state === 'granted';
+                            updatePersistentPermissionBar();
+                        };
+                    }).catch(() => {});
+
+                    navigator.permissions.query({ name: 'geolocation' }).then(res => {
+                        if (res.state === 'granted') isGpsAllowed = true;
+                        updatePersistentPermissionBar();
+                        res.onchange = () => {
+                            isGpsAllowed = res.state === 'granted';
+                            updatePersistentPermissionBar();
+                        };
+                    }).catch(() => {});
+                }
 
                 function checkReadyToSubmit() {
                     if (!btnSubmit) return;
@@ -430,6 +544,8 @@
                             audio: false
                         }).then(stream => {
                             streamInstance = stream;
+                            isCameraAllowed = true;
+                            updatePersistentPermissionBar();
                             video.srcObject = stream;
                             video.onloadedmetadata = () => {
                                 if (cameraLoading) cameraLoading.style.display = 'none';
@@ -439,6 +555,8 @@
                             };
                         }).catch(err => {
                             console.warn('Kamera WebRTC belum diizinkan atau tidak tersedia:', err.name || err);
+                            isCameraAllowed = false;
+                            updatePersistentPermissionBar();
                             if (camLoadingSpinner) camLoadingSpinner.style.display = 'none';
                             if (camErrorBox) camErrorBox.style.display = 'block';
                             if (cameraStatusLabel) cameraStatusLabel.innerText = 'Kamera Diblokir';
@@ -446,6 +564,8 @@
                             checkReadyToSubmit();
                         });
                     } else {
+                        isCameraAllowed = false;
+                        updatePersistentPermissionBar();
                         if (camLoadingSpinner) camLoadingSpinner.style.display = 'none';
                         if (camErrorBox) camErrorBox.style.display = 'block';
                         if (cameraStatusLabel) cameraStatusLabel.innerText = 'Peramban Tidak Mendukung Live';
@@ -565,6 +685,9 @@
                 if (navigator.geolocation) {
                     navigator.geolocation.watchPosition(
                         position => {
+                            isGpsAllowed = true;
+                            updatePersistentPermissionBar();
+
                             currentLat = position.coords.latitude;
                             currentLng = position.coords.longitude;
                             const dist = calculateDistance(currentLat, currentLng, targetLat, targetLng);
@@ -603,6 +726,9 @@
                         },
                         err => {
                             console.warn('GPS belum diizinkan atau dinonaktifkan:', err.message || err);
+                            isGpsAllowed = false;
+                            updatePersistentPermissionBar();
+
                             if (gpsIcon) gpsIcon.style.animation = 'none';
                             if (gpsText) gpsText.innerText = 'Akses Lokasi (GPS) Ditolak!';
                             if (gpsDetail) gpsDetail.innerText = 'Izin lokasi diblokir oleh peramban / perangkat.';
@@ -623,12 +749,37 @@
                     );
                 }
 
+                // Tombol Pemicu Manual Permintaan Izin Kamera & GPS
+                if (btnTriggerPerms) {
+                    btnTriggerPerms.onclick = function() {
+                        startCamera();
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(
+                                pos => {
+                                    isGpsAllowed = true;
+                                    updatePersistentPermissionBar();
+                                },
+                                err => {
+                                    console.warn('GPS trigger error:', err);
+                                    if (permissionBlockedBox) {
+                                        permissionBlockedBox.style.display = 'block';
+                                        permissionBlockedBox.scrollIntoView({ behavior: 'smooth' });
+                                    }
+                                },
+                                { enableHighAccuracy: true, timeout: 5000 }
+                            );
+                        }
+                    };
+                }
+
                 // Tombol Simulasi Lokasi Kantor (Jika GPS Ditolak di browser/testing)
                 if (btnSimulateGps) {
                     btnSimulateGps.onclick = function() {
                         currentLat = targetLat;
                         currentLng = targetLng;
                         isWithinRadius = true;
+                        isGpsAllowed = true;
+                        updatePersistentPermissionBar();
                         if (gpsText) gpsText.innerText = 'Lokasi Sesuai (Simulasi Kantor)';
                         if (gpsDetail) gpsDetail.innerText = '0 meter dari titik cabang (' + targetRadius + 'm toleransi)';
                         if (gpsBadge) {

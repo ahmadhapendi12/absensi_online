@@ -6,38 +6,61 @@ use Illuminate\Database\Seeder;
 use App\Models\JadwalKaryawan;
 use App\Models\User;
 use App\Models\MasterShift;
+use App\Models\RiwayatJadwalKaryawan;
 use Carbon\Carbon;
 
 class JadwalKaryawanSeeder extends Seeder
 {
     public function run(): void
     {
-        $karyawans = User::whereHas('roles', function($q) {
-            $q->where('name', 'karyawan');
-        })->get();
+        $budi = User::where('email', 'karyawan@gmail.com')->first();
+        $siti = User::where('email', 'siti@gmail.com')->first();
 
-        $shifts = MasterShift::all();
+        $shiftPagi = MasterShift::where('nama_shift', 'Shift Pagi')->first();
+        $shiftSore = MasterShift::where('nama_shift', 'Shift Sore')->first();
 
-        if ($karyawans->count() > 0 && $shifts->count() > 0) {
-            // 1. Jadwal Karyawan 1 (Shift Pagi, Libur Senin)
-            JadwalKaryawan::firstOrCreate(
-                ['user_id' => $karyawans[0]->id],
-                [
-                    'shift_id' => $shifts[0]->id,
-                    'hari_libur_rutin' => 'senin',
-                ]
-            );
+        RiwayatJadwalKaryawan::query()->delete();
 
-            // 2. Jadwal Karyawan 2 (Shift Sore, Libur Selasa)
-            if (isset($karyawans[1])) {
-                JadwalKaryawan::firstOrCreate(
-                    ['user_id' => $karyawans[1]->id],
+        JadwalKaryawan::withoutEvents(function () use ($budi, $siti, $shiftPagi, $shiftSore) {
+            if ($budi && $shiftPagi) {
+                JadwalKaryawan::updateOrCreate(
+                    ['user_id' => $budi->id],
                     [
-                        'shift_id' => isset($shifts[1]) ? $shifts[1]->id : $shifts[0]->id,
-                        'hari_libur_rutin' => 'selasa',
+                        'shift_id' => $shiftPagi->id,
+                        'hari_libur_rutin' => 'senin',
                     ]
                 );
             }
+
+            if ($siti && $shiftSore) {
+                JadwalKaryawan::updateOrCreate(
+                    ['user_id' => $siti->id],
+                    [
+                        'shift_id' => $shiftSore->id,
+                        'hari_libur_rutin' => 'minggu',
+                    ]
+                );
+            }
+        });
+
+        if ($budi && $shiftPagi) {
+            RiwayatJadwalKaryawan::create([
+                'user_id' => $budi->id,
+                'shift_id' => $shiftPagi->id,
+                'hari_libur_rutin' => 'senin',
+                'berlaku_dari' => '2026-10-01',
+                'berlaku_sampai' => null,
+            ]);
+        }
+
+        if ($siti && $shiftSore) {
+            RiwayatJadwalKaryawan::create([
+                'user_id' => $siti->id,
+                'shift_id' => $shiftSore->id,
+                'hari_libur_rutin' => 'minggu',
+                'berlaku_dari' => '2026-10-01',
+                'berlaku_sampai' => null,
+            ]);
         }
     }
 }

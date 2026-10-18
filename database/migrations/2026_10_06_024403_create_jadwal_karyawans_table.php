@@ -18,6 +18,18 @@ return new class extends Migration
         $table->string('hari_libur_rutin')->default('minggu');
         $table->timestamps();
       });
+
+      Schema::create('riwayat_jadwal_karyawans', function (Blueprint $table) {
+        $table->uuid('id')->primary();
+        $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+        $table->foreignUuid('shift_id')->constrained('master_shifts')->cascadeOnDelete();
+        $table->string('hari_libur_rutin');
+        $table->date('berlaku_dari');
+        $table->date('berlaku_sampai')->nullable();
+        $table->timestamps();
+
+        $table->index(['user_id', 'berlaku_dari', 'berlaku_sampai']);
+      });
     }
 
     /**
@@ -25,6 +37,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('riwayat_jadwal_karyawans');
         Schema::dropIfExists('jadwal_karyawans');
     }
 };

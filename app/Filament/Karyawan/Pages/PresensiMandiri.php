@@ -63,7 +63,7 @@ class PresensiMandiri extends Page
         if ($agendaToko) {
             $isHariLibur = true;
             $tipeLibur = $agendaToko->jenis;
-            $pesanLibur = "Hari ini agenda [{$agendaToko->nama_agenda}]" . ($agendaToko->keterangan ? ": {$agendaToko->keterangan}" : '.');
+            $pesanLibur = trim("Hari ini agenda {$agendaToko->nama_agenda}. " . ($agendaToko->keterangan ?? ''));
         }
 
         $absensiHariIni = Absensi::where('user_id', $user->id)

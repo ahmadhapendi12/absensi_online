@@ -12,8 +12,10 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $cabang = CabangKantor::first();
-        $cabangId = $cabang ? $cabang->id : null;
+        $cabangPusat = CabangKantor::where('nama_cabang', 'Kantor Pusat Jakarta')->first();
+        $cabangBandung = CabangKantor::where('nama_cabang', 'Cabang Bandung')->first();
+        $cabangId = $cabangPusat ? $cabangPusat->id : null;
+        $cabangBandungId = $cabangBandung ? $cabangBandung->id : $cabangId;
 
         // 1. Superadmin
         $superadmin = User::firstOrCreate(
@@ -52,10 +54,11 @@ class UserSeeder extends Seeder
         UserProfile::updateOrCreate(
             ['user_id' => $karyawan1->id],
             [
-                'nik'      => '12345678',
-                'name'     => 'Budi Santoso',
-                'telphone' => '081298765432',
-                'alamat'   => 'Jl. Sudirman No. 45, Jakarta',
+                'nik'               => '12345678',
+                'name'              => 'Budi Santoso',
+                'tanggal_bergabung' => '2026-10-01',
+                'telphone'          => '081298765432',
+                'alamat'            => 'Jl. Sudirman No. 45, Jakarta',
             ]
         );
 
@@ -66,7 +69,7 @@ class UserSeeder extends Seeder
                 'name'      => 'Siti Rahma',
                 'password'  => Hash::make('password123'),
                 'status'    => 'active',
-                'cabang_id' => $cabangId,
+                'cabang_id' => $cabangBandungId,
             ]
         );
         $karyawan2->syncRoles(['karyawan']);
@@ -74,10 +77,11 @@ class UserSeeder extends Seeder
         UserProfile::updateOrCreate(
             ['user_id' => $karyawan2->id],
             [
-                'nik'      => '87654321',
-                'name'     => 'Siti Rahma',
-                'telphone' => '081345678912',
-                'alamat'   => 'Jl. Gatot Subroto No. 12, Jakarta',
+                'nik'               => '87654321',
+                'name'              => 'Siti Rahma',
+                'tanggal_bergabung' => '2026-10-01',
+                'telphone'          => '081345678912',
+                'alamat'            => 'Jl. Riau No. 12, Bandung',
             ]
         );
 

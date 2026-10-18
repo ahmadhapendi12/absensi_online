@@ -39,19 +39,38 @@ class KaryawanRecentAbsensiWidget extends BaseWidget
 
                 TextColumn::make('jadwal.shift.nama_shift')
                     ->label('Shift Kerja')
-                    ->placeholder('Reguler')
+                    ->getStateUsing(function ($record) {
+                        return $record->jadwal?->shift?->nama_shift 
+                            ?? $record->user?->jadwal?->shift?->nama_shift 
+                            ?? 'Shift Standar';
+                    })
                     ->badge()
                     ->color('gray'),
 
                 TextColumn::make('jam_masuk')
                     ->label('Jam Masuk')
                     ->formatStateUsing(fn ($state) => $state ? Carbon::parse($state)->format('H:i') . ' WIB' : '-')
-                    ->description(fn ($record) => $record->status_masuk ?? '-'),
+                    ->description(function ($record) {
+                        if (!$record->jam_masuk) {
+                            return null;
+                        }
+                        return $record->status_masuk ?? null;
+                    }),
 
                 TextColumn::make('jam_pulang')
                     ->label('Jam Pulang')
-                    ->formatStateUsing(fn ($state) => $state ? Carbon::parse($state)->format('H:i') . ' WIB' : 'Belum Pulang')
-                    ->description(fn ($record) => $record->status_pulang ?? '-'),
+                    ->formatStateUsing(function ($state, $record) {
+                        if ($state) {
+                            return Carbon::parse($state)->format('H:i') . ' WIB';
+                        }
+                        return $record->jam_masuk ? 'Belum Pulang' : '-';
+                    })
+                    ->description(function ($record) {
+                        if (!$record->jam_pulang) {
+                            return null;
+                        }
+                        return $record->status_pulang ?? null;
+                    }),
 
                 TextColumn::make('status_display')
                     ->label('Status Kehadiran')

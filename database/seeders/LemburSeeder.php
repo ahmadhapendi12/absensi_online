@@ -11,69 +11,52 @@ class LemburSeeder extends Seeder
 {
     public function run(): void
     {
-        $karyawans = User::whereHas('roles', function($q) {
-            $q->where('name', 'karyawan');
-        })->get();
+        Lembur::query()->delete();
+
+        $budi = User::where('email', 'karyawan@gmail.com')->first();
+        $siti = User::where('email', 'siti@gmail.com')->first();
 
         $superadmin = User::whereHas('roles', function($q) {
             $q->whereIn('name', ['superadmin', 'super_admin']);
         })->first();
 
-        if ($karyawans->count() > 0) {
-            $kemarin = Carbon::yesterday()->toDateString();
-            $duaHariLalu = Carbon::now()->subDays(2)->toDateString();
-            $besok = Carbon::now()->addDay()->toDateString();
-
-            // 1. Lembur Selesai & Disetujui (Kemarin)
-            Lembur::firstOrCreate(
+        // 1. Lembur Disetujui (Budi Santoso - Kamis, 15 Oktober 2026, Pasca-Shift Pagi: 14:30 - 16:30)
+        if ($budi) {
+            Lembur::updateOrCreate(
                 [
-                    'user_id' => $karyawans[0]->id,
-                    'tanggal' => $kemarin,
+                    'user_id' => $budi->id,
+                    'tanggal' => '2026-10-15',
                 ],
                 [
-                    'alasan_lembur' => 'Mengejar target stock opname bulanan',
+                    'alasan_lembur' => 'Membantu persiapan restock bahan ayam potong dan bumbu marinasi outlet',
                     'status_pengajuan' => 'Disetujui',
                     'disetujui_oleh' => $superadmin ? $superadmin->id : null,
-                    'jam_mulai_aktual' => '16:00:00',
-                    'jam_selesai_aktual' => '19:00:00',
+                    'jam_mulai_aktual' => '14:30:00',
+                    'jam_selesai_aktual' => '16:30:00',
                     'koordinat_mulai' => '-6.2088,106.8456',
                     'koordinat_selesai' => '-6.2088,106.8456',
-                    'durasi_menit' => 180,
+                    'durasi_menit' => 120,
                 ]
             );
+        }
 
-            // 2. Lembur Pending (Besok)
-            Lembur::firstOrCreate(
+        // 2. Lembur Pending (Siti Rahma - Selasa, 20 Oktober 2026, Pra-Shift Sore: 11:30 - 13:30)
+        if ($siti) {
+            Lembur::updateOrCreate(
                 [
-                    'user_id' => $karyawans[0]->id,
-                    'tanggal' => $besok,
+                    'user_id' => $siti->id,
+                    'tanggal' => '2026-10-20',
                 ],
                 [
-                    'alasan_lembur' => 'Persiapan event promosi cabang',
+                    'alasan_lembur' => 'Pembersihan berkala etalase display dan deep fryer outlet',
                     'status_pengajuan' => 'Pending',
-                    'jam_mulai_aktual' => '17:00:00',
-                    'jam_selesai_aktual' => '20:00:00',
-                    'durasi_menit' => 180,
+                    'jam_mulai_aktual' => '11:30:00',
+                    'jam_selesai_aktual' => '13:30:00',
+                    'koordinat_mulai' => '-6.2088,106.8456',
+                    'koordinat_selesai' => '-6.2088,106.8456',
+                    'durasi_menit' => 120,
                 ]
             );
-
-            // 3. Lembur Karyawan 2 (Pending / Ditolak)
-            if (isset($karyawans[1])) {
-                Lembur::firstOrCreate(
-                    [
-                        'user_id' => $karyawans[1]->id,
-                        'tanggal' => $duaHariLalu,
-                    ],
-                    [
-                        'alasan_lembur' => 'Revisi laporan penjualan harian',
-                        'status_pengajuan' => 'Ditolak',
-                        'disetujui_oleh' => $superadmin ? $superadmin->id : null,
-                        'jam_mulai_aktual' => '17:00:00',
-                        'jam_selesai_aktual' => '18:00:00',
-                        'durasi_menit' => 60,
-                    ]
-                );
-            }
         }
     }
 }

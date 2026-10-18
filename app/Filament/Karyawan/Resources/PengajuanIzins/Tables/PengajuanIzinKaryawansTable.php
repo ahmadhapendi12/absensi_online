@@ -15,8 +15,10 @@ class PengajuanIzinKaryawansTable
         return $table
             ->striped()
             ->columns([
-                TextColumn::make('jenis')
+                // Mode Ringkas Khusus Tampilan Layar HP (< md)
+                TextColumn::make('mobile_summary')
                     ->label('Jenis & Periode')
+                    ->getStateUsing(fn ($record) => $record->jenis)
                     ->badge()
                     ->weight('bold')
                     ->color(fn (string $state): string => match ($state) {
@@ -34,6 +36,20 @@ class PengajuanIzinKaryawansTable
                         $selesai = \Carbon\Carbon::parse($record->tanggal_selesai)->format('d M Y');
                         return "{$mulai} - {$selesai} ({$hari} hari)";
                     })
+                    ->hiddenFrom('md'),
+
+                // Mode Terpisah Bersih Khusus Desktop (>= md)
+                TextColumn::make('jenis')
+                    ->label('Jenis Izin')
+                    ->badge()
+                    ->weight('bold')
+                    ->color(fn (string $state): string => match ($state) {
+                        'Sakit' => 'danger',
+                        'Izin' => 'warning',
+                        'Cuti' => 'info',
+                        default => 'gray',
+                    })
+                    ->visibleFrom('md')
                     ->sortable(),
 
                 TextColumn::make('tanggal_mulai')
@@ -49,6 +65,12 @@ class PengajuanIzinKaryawansTable
                     ->visibleFrom('md')
                     ->sortable(),
 
+                TextColumn::make('alasan')
+                    ->label('Alasan')
+                    ->limit(30)
+                    ->tooltip(fn ($record) => $record->alasan)
+                    ->visibleFrom('md'),
+
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
@@ -56,21 +78,12 @@ class PengajuanIzinKaryawansTable
                         'Disetujui' => 'success',
                         'Ditolak' => 'danger',
                         default => 'warning',
-                    })
-                    ->description(fn ($record) => $record->penyetuju ? 'Oleh: ' . $record->penyetuju->name : null),
-
-                TextColumn::make('alasan')
-                    ->label('Alasan')
-                    ->limit(25)
-                    ->tooltip(fn ($record) => $record->alasan)
-                    ->visibleFrom('md')
-                    ->toggleable(),
+                    }),
 
                 TextColumn::make('penyetuju.name')
                     ->label('Diproses Oleh')
-                    ->placeholder('Menunggu')
-                    ->visibleFrom('lg')
-                    ->toggleable(),
+                    ->placeholder('Menunggu Persetujuan')
+                    ->visibleFrom('md'),
             ])
             ->filters([
                 SelectFilter::make('status')

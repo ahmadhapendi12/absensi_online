@@ -16,8 +16,13 @@ return new class extends Migration
             $table->uuid('user_id')->unique();
             $table->string('nik', 30)->nullable()->unique();
             $table->string('name', 100)->nullable();
+            $table->date('tanggal_bergabung')->nullable();
             $table->string('foto_ktp')->nullable();
             $table->string('foto_wajah_acuan')->nullable();
+            $table->timestamp('wajah_terverifikasi_at')->nullable();
+            $table->text('face_descriptor')->nullable();
+            $table->boolean('is_biometric_locked')->default(false);
+            $table->string('catatan_biometrik')->nullable();
             $table->string('berkas_identitas')->nullable();
             $table->string('telphone',100)->nullable();
             $table->string('alamat')->nullable();
