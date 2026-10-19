@@ -282,29 +282,46 @@
             <!-- Section Kontak & Password -->
             <form wire:submit.prevent="simpanProfil" style="display: flex; flex-direction: column; gap: 1.5rem;">
                 
-                <!-- Section 1: Data Kontak -->
+                <!-- Section 1: Biodata, Kontak & Berkas KTP -->
                 <x-filament::section>
                     <x-slot name="heading">
                         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; font-weight: 700;">
-                            <svg style="width: 20px; height: 20px; color: #f59e0b;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-                            <span>Perbarui Data Kontak & Domisili</span>
+                            <svg style="width: 20px; height: 20px; color: #f59e0b;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            <span>Perbarui Data Kontak, Biodata & Dokumen Identitas</span>
                         </div>
                     </x-slot>
 
                     <div style="display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-top: 0.5rem;">
-                        <div>
-                            <label style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem;">
-                                Nomor Telepon / WhatsApp
-                            </label>
-                            <input 
-                                type="text" 
-                                wire:model="telphone" 
-                                placeholder="Contoh: 081234567890" 
-                                class="form-input-control"
-                            >
-                            @error('telphone') 
-                                <span style="display: block; font-size: 0.75rem; color: #ef4444; margin-top: 0.25rem;">{{ $message }}</span> 
-                            @enderror
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem;">
+                                    Nomor Induk Karyawan (NIK)
+                                </label>
+                                <input 
+                                    type="text" 
+                                    wire:model="nik" 
+                                    placeholder="Contoh: 12345678" 
+                                    class="form-input-control"
+                                >
+                                @error('nik') 
+                                    <span style="display: block; font-size: 0.75rem; color: #ef4444; margin-top: 0.25rem;">{{ $message }}</span> 
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem;">
+                                    Nomor Telepon / WhatsApp
+                                </label>
+                                <input 
+                                    type="text" 
+                                    wire:model="telphone" 
+                                    placeholder="Contoh: 081234567890" 
+                                    class="form-input-control"
+                                >
+                                @error('telphone') 
+                                    <span style="display: block; font-size: 0.75rem; color: #ef4444; margin-top: 0.25rem;">{{ $message }}</span> 
+                                @enderror
+                            </div>
                         </div>
 
                         <div>
@@ -320,6 +337,45 @@
                             @error('alamat') 
                                 <span style="display: block; font-size: 0.75rem; color: #ef4444; margin-top: 0.25rem;">{{ $message }}</span> 
                             @enderror
+                        </div>
+
+                        <!-- Berkas KTP Terenkripsi Mandiri -->
+                        <div>
+                            <label style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.375rem;">
+                                Dokumen KTP / Tanda Pengenal (Privasi Terenkripsi)
+                            </label>
+
+                            @if($profile?->foto_ktp)
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.875rem 1rem; border-radius: 0.5rem; background: rgba(16, 185, 129, 0.08); border: 1.5px solid rgba(16, 185, 129, 0.3); margin-bottom: 0.625rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <div style="width: 32px; height: 32px; border-radius: 9999px; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.9375rem; font-weight: bold; flex-shrink: 0;">
+                                            ✓
+                                        </div>
+                                        <div>
+                                            <strong style="display: block; font-size: 0.875rem; color: #059669;">KTP Berhasil Diunggah & Terenkripsi Aman</strong>
+                                            <span style="font-size: 0.75rem; color: #6b7280; line-height: 1.35; display: block; margin-top: 2px;">
+                                                🔒 Berkas KTP Anda dienkripsi otomatis (AES-256). Demi privasi data Anda, Super Admin hanya dapat melihat status centang verifikasi tanpa dapat mengunduh/melihat fisik dokumen.
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <div style="margin-top: 0.25rem;">
+                                <input 
+                                    type="file" 
+                                    wire:model="berkas_ktp" 
+                                    accept="image/*,application/pdf"
+                                    class="form-input-control"
+                                    style="padding: 0.5rem;"
+                                >
+                                <span style="display: block; font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">
+                                    {{ $profile?->foto_ktp ? 'Pilih berkas baru jika Anda ingin mengganti KTP yang tersimpan.' : 'Pilih berkas foto KTP (JPG, PNG, WEBP, atau PDF, maks 5MB). Berkas akan otomatis dienkripsi aman.' }}
+                                </span>
+                                @error('berkas_ktp') 
+                                    <span style="display: block; font-size: 0.75rem; color: #ef4444; margin-top: 0.25rem;">{{ $message }}</span> 
+                                @enderror
+                            </div>
                         </div>
                     </div>
                 </x-filament::section>

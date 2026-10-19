@@ -9,7 +9,8 @@ class FilamentKaryawanPanelTest extends TestCase
 {
     protected function getKaryawan(): User
     {
-        return User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->first();
+        return User::where('email', 'karyawan@gmail.com')->first() 
+            ?? User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->first();
     }
 
     public function test_karyawan_can_access_karyawan_dashboard(): void

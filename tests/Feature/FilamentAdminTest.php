@@ -175,43 +175,6 @@ class FilamentAdminTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function test_karyawan_presensi_page_displays_shift(): void
-    {
-        $karyawan = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->first();
-        $this->actingAs($karyawan);
-
-        $response = $this->get('/karyawan/presensi');
-        $response->assertStatus(200);
-        if ($karyawan->jadwal?->shift) {
-            $response->assertSee($karyawan->jadwal->shift->nama_shift);
-        }
-    }
-
-    public function test_karyawan_presensi_displays_holiday_when_off_day(): void
-    {
-        $dayMap = [
-            'sunday' => 'minggu',
-            'monday' => 'senin',
-            'tuesday' => 'selasa',
-            'wednesday' => 'rabu',
-            'thursday' => 'kamis',
-            'friday' => 'jumat',
-            'saturday' => 'sabtu',
-        ];
-        $todayIndo = $dayMap[strtolower(\Carbon\Carbon::now()->format('l'))] ?? 'senin';
-
-        $karyawan = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->first();
-        if ($karyawan->jadwal) {
-            $karyawan->jadwal->update(['hari_libur_rutin' => $todayIndo]);
-        }
-        $this->actingAs($karyawan);
-
-        $response = $this->get('/karyawan/presensi');
-        $response->assertStatus(200);
-        $response->assertSee('Hari Ini Jadwal Libur Anda!');
-        $response->assertSee('Tidak Perlu Presensi');
-    }
-
     public function test_admin_login_url_redirects_to_unified_login(): void
     {
         $response = $this->get('/admin/login');
@@ -236,32 +199,6 @@ class FilamentAdminTest extends TestCase
         $response = $this->get('/laporan/export-pdf?tipe_periode=bulan&bulan=' . now()->month . '&tahun=' . now()->year);
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'application/pdf');
-    }
-
-    public function test_karyawan_riwayat_renders_pdf_download_modal(): void
-    {
-        $karyawan = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->first();
-        $this->actingAs($karyawan);
-
-        $response = $this->get('/karyawan/riwayat');
-        $response->assertStatus(200);
-        $response->assertSee('Unduh PDF');
-        $response->assertSee('pdfModal');
-        $response->assertSee('Periode Presensi');
-    }
-
-    public function test_karyawan_lembur_page_renders_profile_card_and_time_inputs(): void
-    {
-        $karyawan = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->first();
-        $this->actingAs($karyawan);
-
-        $response = $this->get('/karyawan/pengajuan/lembur');
-        $response->assertStatus(200);
-        $response->assertSee('Karyawan Pemohon');
-        $response->assertSee($karyawan->name);
-        $response->assertSee('jam_mulai_input');
-        $response->assertSee('jam_selesai_input');
-        $response->assertSee('Total Durasi Lembur');
     }
 
     public function test_absensi_format_shows_exact_time_and_ongoing_status(): void

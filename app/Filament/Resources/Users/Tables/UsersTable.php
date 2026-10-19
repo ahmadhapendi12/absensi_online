@@ -90,6 +90,31 @@ class UsersTable
                         }
                         return null;
                     }),
+
+                // =========================================================================================================
+                // [FITUR PRIVASI & ENKRIPSI KTP - BLIND VERIFICATION SUPERADMIN PADA TABEL]
+                // CATATAN DEVELOPER: Superadmin hanya melihat tanda centang simpel apakah KTP sudah diupload atau belum,
+                // tanpa dapat melihat/mengakses/mengunduh fisik foto KTP demi perlindungan privasi data pribadi.
+                // JIKA KLIEN INGIN FITUR INI DIUBAH/DIHAPUS, BAGIAN INI BISA DI-COMMENT ATAU DIHAPUS.
+                // =========================================================================================================
+                TextColumn::make('status_ktp')
+                    ->label('KTP')
+                    ->badge()
+                    ->state(fn (User $record): string => filled($record->profile?->foto_ktp) ? 'Sudah Upload' : 'Belum')
+                    ->color(fn (string $state): string => match ($state) {
+                        'Sudah Upload' => 'success',
+                        default => 'gray',
+                    })
+                    ->icon(fn (string $state): string => match ($state) {
+                        'Sudah Upload' => 'heroicon-m-check-badge',
+                        default => 'heroicon-m-minus-circle',
+                    })
+                    ->tooltip(fn (User $record): string => filled($record->profile?->foto_ktp) 
+                        ? 'Berkas KTP telah diunggah & terenkripsi aman' 
+                        : 'Karyawan belum mengunggah berkas KTP'),
+                // =========================================================================================================
+                // [AKHIR FITUR PRIVASI & ENKRIPSI KTP]
+                // =========================================================================================================
                 TextColumn::make('profile.alamat')
                     ->label('Alamat')
                     ->placeholder('-')

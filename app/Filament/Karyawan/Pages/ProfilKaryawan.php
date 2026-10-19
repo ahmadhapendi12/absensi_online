@@ -7,11 +7,16 @@ use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use BackedEnum;
 use UnitEnum;
+use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class ProfilKaryawan extends Page
 {
+    use WithFileUploads;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUser;
 
     protected static UnitEnum|string|null $navigationGroup = 'Pengaturan';
@@ -24,14 +29,17 @@ class ProfilKaryawan extends Page
 
     protected string $view = 'filament.karyawan.pages.profil-karyawan';
 
+    public ?string $nik = null;
     public ?string $telphone = null;
     public ?string $alamat = null;
     public ?string $password_baru = null;
     public ?string $konfirmasi_password = null;
+    public $berkas_ktp = null;
 
     public function mount(): void
     {
         $user = Auth::user();
+        $this->nik = $user->profile?->nik;
         $this->telphone = $user->profile?->telphone;
         $this->alamat = $user->profile?->alamat;
     }
@@ -41,8 +49,10 @@ class ProfilKaryawan extends Page
         $user = Auth::user();
 
         $rules = [
+            'nik' => 'nullable|string|max:30|unique:user_profiles,nik,' . ($user->profile?->id ?? 'NULL'),
             'telphone' => 'nullable|string|max:20',
             'alamat' => 'nullable|string|max:500',
+            'berkas_ktp' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
         ];
 
         if (filled($this->password_baru)) {
@@ -51,15 +61,50 @@ class ProfilKaryawan extends Page
         }
 
         $this->validate($rules, [
+            'nik.unique' => 'NIK ini sudah terdaftar oleh karyawan lain.',
+            'berkas_ktp.max' => 'Ukuran berkas KTP maksimal 5MB.',
+            'berkas_ktp.mimes' => 'Format KTP harus berupa gambar (JPG, PNG, WEBP) atau PDF.',
             'password_baru.min' => 'Password baru minimal 6 karakter.',
             'konfirmasi_password.same' => 'Konfirmasi password tidak cocok dengan password baru.',
         ]);
 
+        $updateData = [
+            'telphone' => $this->telphone,
+            'alamat' => $this->alamat,
+        ];
+
+        if (filled($this->nik)) {
+            $updateData['nik'] = $this->nik;
+        }
+
+        // =========================================================================================================
+        // [FITUR PRIVASI & ENKRIPSI KTP - PROSES ENKRIPSI PENYIMPANAN]
+        // Berkas KTP karyawan dienkripsi menggunakan AES-256 (Crypt::encrypt) sebelum ditulis ke disk penyimpanan.
+        // Berkas disimpan di private storage lokal, BUKAN di public storage, sehingga tidak dapat diakses publik.
+        // Superadmin pun hanya dapat melihat tanda centang verifikasi status tanpa dapat melihat foto KTP asli.
+        // =========================================================================================================
+        if ($this->berkas_ktp) {
+            $rawContent = file_get_contents($this->berkas_ktp->getRealPath());
+            $encryptedContent = Crypt::encrypt($rawContent);
+            $extension = $this->berkas_ktp->getClientOriginalExtension() ?: 'bin';
+            $secureFileName = 'ktp_terenkripsi/' . $user->id . '_' . time() . '.' . $extension . '.enc';
+
+            Storage::disk('local')->put($secureFileName, $encryptedContent);
+
+            // Hapus berkas KTP lama jika ada
+            if ($user->profile?->foto_ktp && Storage::disk('local')->exists($user->profile->foto_ktp)) {
+                Storage::disk('local')->delete($user->profile->foto_ktp);
+            }
+
+            $updateData['foto_ktp'] = $secureFileName;
+            $this->berkas_ktp = null;
+        }
+        // =========================================================================================================
+        // [AKHIR FITUR PRIVASI & ENKRIPSI KTP]
+        // =========================================================================================================
+
         if ($user->profile) {
-            $user->profile->update([
-                'telphone' => $this->telphone,
-                'alamat' => $this->alamat,
-            ]);
+            $user->profile->update($updateData);
         }
 
         if (filled($this->password_baru)) {
