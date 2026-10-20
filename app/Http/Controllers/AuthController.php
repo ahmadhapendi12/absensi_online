@@ -56,6 +56,8 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $user = Auth::user();
 
+            session()->flash('swal_success', 'Selamat datang kembali, ' . $user->name . '!');
+
             if ($user->hasRole('superadmin')) {
                 return redirect('/admin');
             }
@@ -75,6 +77,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect()->route('login')->with('swal_info', 'Anda telah berhasil logout.');
     }
 }
