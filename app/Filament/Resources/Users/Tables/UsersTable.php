@@ -151,12 +151,12 @@ class UsersTable
                     ->label('Reset Wajah')
                     ->icon('heroicon-o-arrow-path')
                     ->color('warning')
-                    ->tooltip('Buka Kunci Biometrik Karyawan')
+                    ->tooltip('Reset Biometrik Wajah')
                     ->visible(fn (User $record) => (bool) $record->profile?->foto_wajah_acuan)
                     ->requiresConfirmation()
-                    ->modalHeading('Reset Biometrik Wajah Karyawan?')
-                    ->modalDescription(fn (User $record) => "Wajah acuan master {$record->name} akan dihapus dan kunci biometrik dibuka agar karyawan dapat merekam ulang wajahnya.")
-                    ->modalSubmitActionLabel('Ya, Buka Kunci & Reset')
+                    ->modalHeading('Reset Data Biometrik Karyawan')
+                    ->modalDescription(fn (User $record) => "Data biometrik wajah karyawan {$record->name} akan dihapus agar karyawan dapat mendaftarkan ulang wajahnya.")
+                    ->modalSubmitActionLabel('Reset Data')
                     ->action(function (User $record) {
                         if ($record->profile) {
                             if ($record->profile->foto_wajah_acuan) {
@@ -170,8 +170,8 @@ class UsersTable
                             ]);
                         }
                         \Filament\Notifications\Notification::make()
-                            ->title('Biometrik Wajah Berhasil Direset!')
-                            ->body("Karyawan {$record->name} sekarang dapat merekam ulang wajah acuan baru.")
+                            ->title('Biometrik Berhasil Direset')
+                            ->body("Data wajah karyawan {$record->name} telah dihapus. Karyawan dapat mendaftarkan ulang.")
                             ->success()
                             ->send();
                     }),

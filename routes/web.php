@@ -31,4 +31,26 @@ Route::middleware(['auth'])->group(function () {
     // Export Laporan Rekap Presensi PDF (Bisa diakses Superadmin & Karyawan)
     Route::get('/laporan/export-pdf', [LaporanPresensiController::class, 'exportPdf'])->name('laporan.export-pdf');
 
+    // Endpoint Verifikasi Biometrik Wajah & Presensi Masuk / Pulang
+    Route::post('/karyawan/presensi', function (\Illuminate\Http\Request $request, \App\Services\BiometricFaceVerificationService $service) {
+        try {
+            $user = \Illuminate\Support\Facades\Auth::user();
+            $fotoBase64 = $request->input('foto_base64') ?? $request->input('foto_masuk');
+            $koordinat = $request->input('koordinat_masuk') ?? $request->input('koordinat') ?? '';
+            $liveDescriptor = $request->input('face_descriptor');
+
+            if (!$fotoBase64) {
+                return response()->json(['message' => 'Foto wajah dari kamera tidak terkirim. Pastikan kamera menyala.'], 422);
+            }
+
+            $result = $service->prosesPresensi($user, $fotoBase64, $koordinat, $liveDescriptor);
+            return response()->json($result, 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = $e->validator->errors()->all();
+            return response()->json(['message' => implode(' ', $errors)], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    })->name('karyawan.presensi.store');
+
 });

@@ -170,7 +170,7 @@
                 </p>
 
                 @if($profile?->is_biometric_locked && $profile?->foto_wajah_acuan)
-                    <!-- STATUS BIOMETRIK TERKUNCI & TERVERIFIKASI -->
+                    <!-- STATUS BIOMETRIK TERVERIFIKASI -->
                     <div style="padding: 1.25rem; border-radius: 0.875rem; border: 1.5px solid rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 1.25rem;">
                             <div style="position: relative;">
@@ -183,16 +183,16 @@
                             </div>
                             <div>
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                    <strong style="font-size: 1rem; color: #059669;">Biometrik Wajah Terverifikasi Resmi</strong>
+                                    <strong style="font-size: 1rem; color: #059669;">Biometrik Wajah Terdaftar</strong>
                                     <span style="padding: 0.125rem 0.5rem; border-radius: 0.375rem; font-size: 0.6875rem; font-weight: 700; background: #10b981; color: white;">
-                                        Terkunci
+                                        Terverifikasi
                                     </span>
                                 </div>
                                 <div style="font-size: 0.8125rem; opacity: 0.85; margin-top: 0.25rem;">
                                     Didaftarkan: <strong>{{ $profile->wajah_terverifikasi_at ? \Carbon\Carbon::parse($profile->wajah_terverifikasi_at)->translatedFormat('l, d F Y H:i') . ' WIB' : 'Telah Terverifikasi' }}</strong>
                                 </div>
                                 <p style="font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0 0; max-width: 480px; line-height: 1.4;">
-                                    🔒 Data wajah acuan ini telah dikunci permanen oleh sistem dan tidak dapat diubah sembarangan. Hubungi Super Admin jika membutuhkan pembukaan kunci verifikasi ulang.
+                                    Data biometrik wajah telah tersimpan. Hubungi administrator apabila Anda memerlukan pembaruan data biometrik.
                                 </p>
                             </div>
                         </div>
@@ -200,12 +200,12 @@
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <span style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 0.875rem; border-radius: 0.5rem; font-size: 0.8125rem; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3);">
                                 <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                                Anti-Manipulasi Aktif
+                                Terverifikasi
                             </span>
                         </div>
                     </div>
                 @else
-                    <!-- BELUM ADA MASTER / KARYAWAN BARU WAJIB ENROLL -->
+                    <!-- BELUM ADA MASTER -->
                     <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border-radius: 0.75rem; border: 1.5px dashed #f59e0b; background: rgba(245, 158, 11, 0.05);">
                         <div style="display: flex; align-items: center; gap: 1rem;">
                             <div style="width: 64px; height: 64px; border-radius: 0.5rem; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center; color: #d97706; flex-shrink: 0;">
@@ -214,9 +214,9 @@
                             <div>
                                 <div style="display: flex; align-items: center; gap: 0.375rem;">
                                     <span style="width: 8px; height: 8px; border-radius: 9999px; background: #f59e0b;"></span>
-                                    <strong style="font-size: 0.875rem; color: #d97706;">Wajah Master Belum Terdaftar (Wajib)</strong>
+                                    <strong style="font-size: 0.875rem; color: #d97706;">Biometrik Wajah Belum Terdaftar</strong>
                                 </div>
-                                <span style="font-size: 0.75rem; opacity: 0.85; display: block; margin-top: 2px;">Sebagai karyawan baru, Anda wajib merekam foto wajah acuan agar dapat melakukan absensi harian.</span>
+                                <span style="font-size: 0.75rem; opacity: 0.85; display: block; margin-top: 2px;">Silakan daftarkan foto wajah acuan Anda untuk keperluan verifikasi presensi mandiri.</span>
                             </div>
                         </div>
 
@@ -228,7 +228,7 @@
                             onmouseout="this.style.backgroundColor='#f59e0b'"
                         >
                             <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
-                            <span>Buka Kamera & Rekam Wajah Acuan</span>
+                            <span>Buka Kamera & Ambil Foto Wajah</span>
                         </button>
                     </div>
                 @endif
@@ -447,10 +447,29 @@
 
     </div>
 
-    <!-- Script Kamera Rekam Wajah Master -->
+    <!-- Script Face-API & Kamera Rekam Wajah Master -->
+    <script src="{{ asset('js/face-api.min.js') }}"></script>
     <script>
         (function() {
+            let isEnrollModelsLoaded = false;
+            const ENROLL_MODEL_URL = '{{ asset('models') }}';
+
+            async function loadEnrollModels() {
+                if (window.faceapi && !isEnrollModelsLoaded) {
+                    try {
+                        await faceapi.nets.tinyFaceDetector.loadFromUri(ENROLL_MODEL_URL);
+                        await faceapi.nets.faceLandmark68Net.loadFromUri(ENROLL_MODEL_URL);
+                        await faceapi.nets.faceRecognitionNet.loadFromUri(ENROLL_MODEL_URL);
+                        isEnrollModelsLoaded = true;
+                    } catch(e) {
+                        console.warn('Gagal memuat model face-api master:', e);
+                    }
+                }
+            }
+
             function initEnrollCam() {
+                loadEnrollModels();
+
                 const btnToggle = document.getElementById('btn-toggle-enroll-cam');
                 const boxCam = document.getElementById('enroll-cam-box');
                 const video = document.getElementById('enroll-webcam');
@@ -463,6 +482,7 @@
 
                 let streamInstance = null;
                 let capturedBase64 = null;
+                let capturedDescriptor = null;
 
                 if (!btnToggle || !boxCam) return;
 
@@ -483,7 +503,10 @@
                 };
 
                 if (btnSnap) {
-                    btnSnap.onclick = function() {
+                    btnSnap.onclick = async function() {
+                        btnSnap.disabled = true;
+                        btnSnap.innerText = 'Menganalisis Wajah...';
+
                         canvas.width = 360;
                         canvas.height = 480;
                         const ctx = canvas.getContext('2d');
@@ -492,18 +515,46 @@
 
                         previewImg.src = capturedBase64;
                         previewBox.style.display = 'block';
-                        btnSave.style.display = 'inline-flex';
+
+                        // Ekstraksi 128-vektor deskriptor biometrik wajah
+                        capturedDescriptor = null;
+                        if (window.faceapi && isEnrollModelsLoaded) {
+                            try {
+                                const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.70 }))
+                                    .withFaceLandmarks()
+                                    .withFaceDescriptor();
+                                if (detection && detection.detection.score >= 0.70) {
+                                    capturedDescriptor = JSON.stringify(Array.from(detection.descriptor));
+                                    btnSave.style.display = 'inline-flex';
+                                } else {
+                                    btnSave.style.display = 'none';
+                                    alert('Wajah tidak terdeteksi dengan jelas pada kamera. Pastikan wajah Anda terlihat tegak dan terang.');
+                                }
+                            } catch(e) {
+                                console.warn('Gagal ekstraksi biometrik:', e);
+                                btnSave.style.display = 'none';
+                            }
+                        } else {
+                            btnSave.style.display = 'none';
+                            alert('Model biometrik belum selesai dimuat. Harap tunggu sebentar.');
+                        }
+
+                        btnSnap.disabled = false;
+                        btnSnap.innerText = 'Jepret Ulang';
                     };
                 }
 
                 if (btnSave) {
                     btnSave.onclick = function() {
-                        if (!capturedBase64) return;
+                        if (!capturedBase64 || !capturedDescriptor) {
+                            alert('Wajah belum terdeteksi dengan benar. Silakan lakukan pengambilan foto kembali.');
+                            return;
+                        }
                         btnSave.disabled = true;
-                        btnSave.innerText = 'Menyimpan...';
+                        btnSave.innerText = 'Menyimpan Biometrik...';
 
-                        // Panggil Livewire method simpanFotoWajahMaster
-                        @this.simpanFotoWajahMaster(capturedBase64).then(() => {
+                        // Panggil Livewire method simpanFotoWajahMaster beserta vektor biometrik
+                        @this.simpanFotoWajahMaster(capturedBase64, capturedDescriptor).then(() => {
                             if (streamInstance) {
                                 streamInstance.getTracks().forEach(track => track.stop());
                             }

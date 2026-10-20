@@ -15,6 +15,10 @@ class Absensi extends Model
         'status_masuk', 'menit_terlambat'
     ];
 
+    protected $casts = [
+        'menit_terlambat' => 'integer',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

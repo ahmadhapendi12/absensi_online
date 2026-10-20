@@ -127,8 +127,8 @@ class ProfilKaryawan extends Page
 
         if ($user->profile?->is_biometric_locked) {
             Notification::make()
-                ->title('Biometrik Wajah Sudah Terkunci!')
-                ->body('Data wajah acuan Anda telah diverifikasi dan dikunci permanen. Hubungi Super Admin jika ingin memperbarui wajah.')
+                ->title('Data Wajah Sudah Terdaftar')
+                ->body('Data biometrik Anda telah tersimpan. Hubungi administrator apabila memerlukan perubahan data.')
                 ->warning()
                 ->send();
             return;
@@ -136,8 +136,18 @@ class ProfilKaryawan extends Page
 
         if (empty($fotoBase64) || !str_contains($fotoBase64, 'base64,')) {
             Notification::make()
-                ->title('Gagal Mengambil Foto')
-                ->body('Format foto tidak valid. Silakan ulangi pengambilan foto.')
+                ->title('Gagal Memproses Foto')
+                ->body('Format foto tidak valid. Silakan lakukan pengambilan foto kembali.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $vector = json_decode($descriptorJson ?? '', true);
+        if (!is_array($vector) || count($vector) !== 128) {
+            Notification::make()
+                ->title('Wajah Tidak Terdeteksi')
+                ->body('Kamera tidak mendeteksi wajah dengan jelas. Pastikan seluruh wajah Anda terlihat tegak di depan kamera dan ulangi pengambilan foto.')
                 ->danger()
                 ->send();
             return;
@@ -166,8 +176,8 @@ class ProfilKaryawan extends Page
         }
 
         Notification::make()
-            ->title('Foto Wajah Acuan Master Berhasil Terverifikasi & Terkunci!')
-            ->body('Foto wajah Anda berhasil diverifikasi sebagai acuan biometrik resmi untuk presensi dan telah dikunci demi keamanan.')
+            ->title('Perekaman Wajah Berhasil')
+            ->body('Data biometrik wajah Anda berhasil didaftarkan.')
             ->success()
             ->send();
     }

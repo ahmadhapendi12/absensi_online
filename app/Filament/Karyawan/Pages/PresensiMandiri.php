@@ -82,4 +82,17 @@ class PresensiMandiri extends Page
             'absensi' => $absensiHariIni,
         ];
     }
+
+    public function submitPresensi(string $fotoBase64, string $koordinat, ?string $liveDescriptor = null): array
+    {
+        $service = app(\App\Services\BiometricFaceVerificationService::class);
+        $result = $service->prosesPresensi(Auth::user(), $fotoBase64, $koordinat, $liveDescriptor);
+
+        \Filament\Notifications\Notification::make()
+            ->title($result['message'])
+            ->success()
+            ->send();
+
+        return $result;
+    }
 }

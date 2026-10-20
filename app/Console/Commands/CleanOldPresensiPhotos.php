@@ -9,7 +9,7 @@ use Carbon\Carbon;
 
 class CleanOldPresensiPhotos extends Command
 {
-    protected $signature = 'absensi:clean-old-photos {--days=60 : Hapus file foto presensi yang lebih lama dari X hari}';
+    protected $signature = 'absensi:clean-old-photos {--days=30 : Hapus file foto presensi yang lebih lama dari 30 hari (1 bulan)}';
 
     protected $description = 'Bersihkan berkas fisik foto presensi lama dari server untuk menghemat penyimpanan disk, tanpa menghapus riwayat jam kerja.';
 
