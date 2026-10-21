@@ -73,6 +73,12 @@ class LatestAbsensiWidget extends TableWidget
                         return $state > 0 ? 'danger' : 'success';
                     }),
             ])
+            ->filters([
+                \Filament\Tables\Filters\SelectFilter::make('cabang_id')
+                    ->label('Cabang')
+                    ->relationship('user.cabang', 'nama_cabang')
+                    ->placeholder('Semua Cabang'),
+            ])
             ->paginated([5, 10]);
     }
 }

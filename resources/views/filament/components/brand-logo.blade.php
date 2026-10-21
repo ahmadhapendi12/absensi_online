@@ -1,7 +1,7 @@
 <div style="display: flex; align-items: center; gap: 0.75rem; user-select: none;">
-    {{-- Logo Lazatto dengan Pill Badge Putih Bersih --}}
-    <div style="background: #ffffff; padding: 0.25rem 0.65rem; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); border: 1.5px solid #fde047; flex-shrink: 0; height: 2.35rem;">
-        <img src="{{ asset('lazatto-logo.png') }}" alt="Lazatto" style="height: 1.75rem; max-height: 1.75rem; width: auto; max-width: 90px; object-fit: contain; display: block;">
+    {{-- Logo Lazatto Transparan Alami --}}
+    <div style="background: transparent; padding: 0; border: none; border-radius: 0; box-shadow: none; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <img src="{{ asset('lazatto-logo.png') }}" alt="Lazatto" style="height: 2.6rem; max-height: 2.8rem; width: auto; max-width: 130px; object-fit: contain; display: block; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));">
     </div>
 
     {{-- Teks Sistem E-Absensi Lazatto --}}

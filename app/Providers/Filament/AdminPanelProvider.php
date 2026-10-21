@@ -11,8 +11,6 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
-use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -31,20 +29,13 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->brandName('Sistem E-Absensi Lazatto')
             ->brandLogo(fn () => view('filament.components.brand-logo'))
-            ->brandLogoHeight('2.4rem')
+            ->brandLogoHeight('2.8rem')
             ->colors([
                 'primary' => [
-                    50 => '#fef2f2',
-                    100 => '#fee2e2',
-                    200 => '#fecaca',
-                    300 => '#fca5a5',
-                    400 => '#f87171',
-                    500 => '#ef4444',
-                    600 => '#dc2626',
-                    700 => '#b91c1c',
-                    800 => '#991b1b',
-                    900 => '#7f1d1d',
-                    950 => '#450a0a',
+                    50 => '#fef2f2', 100 => '#fee2e2', 200 => '#fecaca',
+                    300 => '#fca5a5', 400 => '#f87171', 500 => '#ef4444',
+                    600 => '#dc2626', 700 => '#b91c1c', 800 => '#991b1b',
+                    900 => '#7f1d1d', 950 => '#450a0a',
                 ],
                 'warning' => Color::Amber,
                 'danger' => Color::Red,
@@ -75,59 +66,55 @@ class AdminPanelProvider extends PanelProvider
                             --lazatto-yellow: #facc15;
                         }
 
-                        /* Page Background - Light mode: Warm Ivory */
                         .fi-body, .fi-layout, .fi-main-ctn, .fi-main {
                             background-color: #fbf7f4 !important;
                         }
 
-                        /* ========================================================
-                           SIDEBAR KIRI - Deep Red Lazatto (Sesuai Referensi SIMP LSW)
-                           ======================================================== */
-                        #fi-main-sidebar,
-                        .fi-sidebar,
-                        .fi-main-sidebar {
+                        #fi-main-sidebar, .fi-sidebar, .fi-main-sidebar {
                             background: linear-gradient(180deg, #b91c1c 0%, #991b1b 60%, #7f1d1d 100%) !important;
                             border-right: 1px solid rgba(254, 215, 170, 0.25) !important;
                             box-shadow: 4px 0 25px rgba(127, 29, 29, 0.4) !important;
                         }
 
-                        .fi-sidebar-header-ctn,
-                        .fi-sidebar-header,
-                        .fi-sidebar-nav,
-                        .fi-sidebar-nav-groups {
+                        .fi-sidebar-header-ctn, .fi-sidebar-header, .fi-sidebar-nav, .fi-sidebar-nav-groups {
                             background: transparent !important;
                         }
 
-                        /* Sidebar Header & Brand Logo */
                         .fi-sidebar-header {
                             border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
                             padding-top: 1rem !important;
                             padding-bottom: 1rem !important;
                         }
-                        .fi-logo {
-                            height: 2.4rem !important;
-                            max-height: 2.4rem !important;
+                        .fi-logo, a.fi-logo, .fi-sidebar-header .fi-logo {
+                            height: 2.8rem !important;
+                            max-height: 2.8rem !important;
                             display: inline-flex !important;
                             align-items: center !important;
                             background: transparent !important;
+                            background-color: transparent !important;
+                            border: none !important;
+                            border-radius: 0 !important;
                             padding: 0 !important;
                             box-shadow: none !important;
                             overflow: visible !important;
                         }
                         .fi-logo img {
-                            height: 1.75rem !important;
-                            max-height: 1.75rem !important;
+                            height: 2.6rem !important;
+                            max-height: 2.8rem !important;
                             width: auto !important;
-                            max-width: 90px !important;
+                            max-width: 140px !important;
                             object-fit: contain !important;
+                            background: transparent !important;
+                            border-radius: 0 !important;
+                            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4)) !important;
                         }
 
-                        /* Group Headers (MANAJEMEN KARYAWAN, PERSETUJUAN & IZIN, dll) */
+                        /* Group Headers - KUNING DIUBAH KE PUTIH */
                         .fi-sidebar-group-label,
                         .fi-sidebar-group-label span,
                         .fi-sidebar-group-btn span,
                         button.fi-sidebar-group-btn span {
-                            color: #fde047 !important;
+                            color: #ffffff !important;
                             font-size: 0.72rem !important;
                             font-weight: 800 !important;
                             letter-spacing: 0.08em !important;
@@ -135,10 +122,10 @@ class AdminPanelProvider extends PanelProvider
                             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
                         }
                         .fi-sidebar-group-btn svg {
-                            color: #fde047 !important;
+                            color: #ffffff !important;
                         }
 
-                        /* Sidebar Navigation Items - Menu Item Lazatto */
+                        /* Sidebar Navigation Items */
                         .fi-sidebar-item-btn {
                             border-radius: 0.85rem !important;
                             margin: 0.25rem 0.5rem !important;
@@ -163,15 +150,15 @@ class AdminPanelProvider extends PanelProvider
                             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15) !important;
                         }
                         .fi-sidebar-item-btn:hover .fi-sidebar-item-icon {
-                            color: #fde047 !important;
+                            color: #ffffff !important; /* Diubah ke putih */
                             transform: scale(1.1) !important;
                         }
 
-                        /* Active Menu Item - Gradasi Oranye ke Merah Lazatto */
+                        /* Active Menu Item - KUNING DIUBAH KE PUTIH */
                         .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
                             background: linear-gradient(135deg, #f97316 0%, #dc2626 100%) !important;
                             box-shadow: 0 4px 16px rgba(234, 88, 12, 0.5) !important;
-                            border: 1px solid #fde047 !important;
+                            border: 1px solid #ffffff !important;
                         }
                         .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-label,
                         .fi-sidebar-item.fi-active > .fi-sidebar-item-btn span {
@@ -179,11 +166,10 @@ class AdminPanelProvider extends PanelProvider
                             font-weight: 800 !important;
                         }
                         .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-icon {
-                            color: #fef08a !important;
-                            filter: drop-shadow(0 0 4px rgba(254, 240, 138, 0.6)) !important;
+                            color: #ffffff !important;
+                            filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.6)) !important;
                         }
 
-                        /* Sidebar Toggle Buttons */
                         .fi-sidebar-open-collapse-sidebar-btn,
                         .fi-sidebar-close-collapse-sidebar-btn,
                         .fi-layout-sidebar-toggle-btn,
@@ -192,9 +178,7 @@ class AdminPanelProvider extends PanelProvider
                             color: #ffffff !important;
                         }
 
-                        /* ========================================================
-                           TOPBAR HEADER - Full-Width Red Gradient Navbar Mentok Pinggir
-                           ======================================================== */
+                        /* TOPBAR HEADER */
                         .fi-topbar-ctn {
                             background: transparent !important;
                             padding: 0 !important;
@@ -217,8 +201,6 @@ class AdminPanelProvider extends PanelProvider
                             align-items: center !important;
                             color: #ffffff !important;
                         }
-
-                        /* Mentokkan Logo & Teks Brand ke Paling Kiri */
                         .fi-topbar-start {
                             display: flex !important;
                             align-items: center !important;
@@ -238,7 +220,7 @@ class AdminPanelProvider extends PanelProvider
                             margin-inline-start: 0.35rem !important;
                         }
 
-                        /* Tombol Toggle Sidebar */
+                        /* Toggle Sidebar Hover - KUNING DIUBAH KE PUTIH */
                         .fi-topbar-open-sidebar-btn,
                         .fi-topbar-close-sidebar-btn,
                         .fi-topbar-open-collapse-sidebar-btn,
@@ -255,7 +237,7 @@ class AdminPanelProvider extends PanelProvider
                         .fi-topbar-open-collapse-sidebar-btn:hover,
                         .fi-topbar-close-collapse-sidebar-btn:hover {
                             background: rgba(255, 255, 255, 0.28) !important;
-                            border-color: #fde047 !important;
+                            border-color: #ffffff !important;
                             transform: scale(1.05) !important;
                         }
                         .fi-topbar-open-sidebar-btn svg,
@@ -265,9 +247,7 @@ class AdminPanelProvider extends PanelProvider
                             color: #ffffff !important;
                         }
 
-                        /* ========================================================
-                           GLOBAL SEARCH - Kontras Tajam di Mode Terang & Gelap
-                           ======================================================== */
+                        /* GLOBAL SEARCH - KUNING DIUBAH KE PUTIH */
                         .fi-topbar .fi-global-search-ctn {
                             max-width: 24rem !important;
                         }
@@ -286,8 +266,8 @@ class AdminPanelProvider extends PanelProvider
                         nav.fi-topbar .fi-input-wrp:focus-within {
                             background-color: rgba(60, 5, 5, 0.65) !important;
                             background: rgba(60, 5, 5, 0.65) !important;
-                            border-color: #facc15 !important;
-                            box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.35), inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+                            border-color: #ffffff !important;
+                            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35), inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
                         }
                         .fi-topbar .fi-global-search-field input,
                         nav.fi-topbar input {
@@ -305,11 +285,11 @@ class AdminPanelProvider extends PanelProvider
                         .fi-topbar .fi-global-search-field .fi-input-wrp-icon,
                         .fi-topbar .fi-global-search-field svg,
                         nav.fi-topbar .fi-global-search-field svg {
-                            color: #fde047 !important;
+                            color: #ffffff !important;
                             filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35)) !important;
                         }
 
-                        /* User Menu Trigger & Avatar */
+                        /* User Menu Trigger & Avatar - KUNING DIUBAH KE PUTIH */
                         nav.fi-topbar .fi-user-menu button,
                         .fi-topbar .fi-user-menu button {
                             background: rgba(255, 255, 255, 0.18) !important;
@@ -321,20 +301,18 @@ class AdminPanelProvider extends PanelProvider
                         nav.fi-topbar .fi-user-menu button:hover,
                         .fi-topbar .fi-user-menu button:hover {
                             background: rgba(255, 255, 255, 0.3) !important;
-                            border-color: #fde047 !important;
+                            border-color: #ffffff !important;
                         }
                         nav.fi-topbar .fi-avatar,
                         .fi-topbar .fi-avatar {
                             background: #ffffff !important;
                             color: #b91c1c !important;
                             font-weight: 800 !important;
-                            border: 2px solid #facc15 !important;
+                            border: 2px solid #ffffff !important;
                             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
                         }
 
-                        /* ========================================================
-                           THEME SWITCHER (Mode Terang / Gelap Selector di User Menu)
-                           ======================================================== */
+                        /* THEME SWITCHER */
                         .fi-theme-switcher {
                             background: #fff7ed !important;
                             padding: 0.25rem !important;
@@ -363,9 +341,7 @@ class AdminPanelProvider extends PanelProvider
                             color: #ffffff !important;
                         }
 
-                        /* ========================================================
-                           STATS OVERVIEW CARDS (Di Atas Dashboard)
-                           ======================================================== */
+                        /* STATS OVERVIEW CARDS */
                         .fi-wi-stats-overview {
                             background: transparent !important;
                             border: none !important;
@@ -395,9 +371,7 @@ class AdminPanelProvider extends PanelProvider
                             font-weight: 600 !important;
                         }
 
-                        /* ========================================================
-                           SECTION & WIDGET CARD STYLING (Agar Tidak Monoton Putih)
-                           ======================================================== */
+                        /* SECTION & WIDGET CARD STYLING */
                         .fi-section {
                             background: #ffffff !important;
                             border-radius: 1.25rem !important;
@@ -409,6 +383,60 @@ class AdminPanelProvider extends PanelProvider
                             background: linear-gradient(90deg, #fef2f2 0%, #fff7ed 100%) !important;
                             border-bottom: 2px solid #fed7aa !important;
                             padding: 1rem 1.25rem !important;
+                            display: flex !important;
+                            align-items: flex-start !important;
+                            justify-content: space-between !important;
+                            gap: 1rem !important;
+                        }
+                        .fi-wi-chart .fi-section-header {
+                            display: flex !important;
+                            flex-wrap: wrap !important;
+                            align-items: center !important;
+                            justify-content: space-between !important;
+                            gap: 0.75rem 1rem !important;
+                        }
+                        .fi-wi-chart .fi-section-header-text-ctn {
+                            flex: 1 1 0% !important;
+                            width: 100% !important;
+                            display: contents !important;
+                        }
+                        .fi-wi-chart .fi-section-header-heading {
+                            order: 1 !important;
+                            flex: 1 1 auto !important;
+                        }
+                        .fi-wi-chart .fi-section-header-after-ctn {
+                            order: 2 !important;
+                            flex: 0 0 auto !important;
+                            margin-top: 0 !important;
+                            align-self: center !important;
+                        }
+                        .fi-wi-chart .fi-section-header-description {
+                            order: 3 !important;
+                            width: 100% !important;
+                            flex: 1 0 100% !important;
+                        }
+                        .fi-wi-chart-legend-box {
+                            width: 100% !important;
+                            box-sizing: border-box !important;
+                        }
+                        .fi-section-header-text-ctn {
+                            flex: 1 1 auto !important;
+                        }
+                        .fi-section-header-after-ctn {
+                            flex: 0 0 auto !important;
+                            align-self: flex-start !important;
+                            margin-top: 0 !important;
+                        }
+                        .fi-wi-chart-filter {
+                            min-width: 140px !important;
+                            max-width: 180px !important;
+                        }
+                        .fi-wi-chart-filter select {
+                            padding-top: 0.25rem !important;
+                            padding-bottom: 0.25rem !important;
+                            font-size: 0.8125rem !important;
+                            font-weight: 600 !important;
+                            border-radius: 0.65rem !important;
                         }
                         .fi-header-heading,
                         .fi-section-header-heading {
@@ -417,12 +445,39 @@ class AdminPanelProvider extends PanelProvider
                             letter-spacing: -0.025em !important;
                         }
 
-                        /* Card Kiri (Trend Kehadiran) */
+                        /* =======================================================
+                           INI GRID NYA YANG SEMPAT HILANG, SAYA KEMBALIKAN UTUH!
+                           ======================================================= */
+                        @media (min-width: 768px) {
+                            .fi-wi-chart {
+                                grid-column: span 1 / span 1 !important;
+                                display: flex !important;
+                                flex-direction: column !important;
+                                height: 100% !important;
+                            }
+                            .fi-wi-chart .fi-section {
+                                flex: 1 1 auto !important;
+                                display: flex !important;
+                                flex-direction: column !important;
+                                height: 100% !important;
+                            }
+                            .fi-wi-chart .fi-section-header {
+                                min-height: 145px !important;
+                            }
+                            .fi-wi-chart .fi-section-content-ctn {
+                                flex: 1 1 auto !important;
+                                display: flex !important;
+                                flex-direction: column !important;
+                                justify-content: center !important;
+                            }
+                            .fi-wi-chart .fi-wi-chart-canvas-ctn {
+                                max-height: 320px !important;
+                            }
+                        }
+
                         .fi-wi-chart:first-of-type .fi-section {
                             border-top: 4px solid #dc2626 !important;
                         }
-
-                        /* Card Kanan / Widget Distribusi Donut (Warna Oranye Hangat Khas Lazatto) */
                         .fi-wi-chart:nth-of-type(2) .fi-section,
                         .fi-wi-chart:last-child .fi-section {
                             background: linear-gradient(180deg, #ffffff 0%, #fffaf5 100%) !important;
@@ -436,7 +491,7 @@ class AdminPanelProvider extends PanelProvider
                             border-bottom: 2px solid #fed7aa !important;
                         }
 
-                        /* Slide-over Kanan & Modal (Filament Slide-over Drawers & Modals) */
+                        /* Slide-over Kanan & Modal */
                         .fi-modal-window {
                             border: 1px solid #fed7aa !important;
                             border-left: 5px solid #ea580c !important;
@@ -464,7 +519,7 @@ class AdminPanelProvider extends PanelProvider
                             border-top: 1px solid #fed7aa !important;
                         }
 
-                        /* Tables (Presensi & Resource Tables) */
+                        /* Tables */
                         .fi-ta-ctn {
                             background: #ffffff !important;
                             border-radius: 1.25rem !important;
@@ -492,7 +547,7 @@ class AdminPanelProvider extends PanelProvider
                             border: none !important;
                         }
 
-                        /* Primary Buttons - Oranye ke Merah Lazatto */
+                        /* Primary Buttons */
                         .fi-btn-color-primary:not(.fi-btn-outlined) {
                             background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%) !important;
                             color: #ffffff !important;
@@ -515,24 +570,9 @@ class AdminPanelProvider extends PanelProvider
                         }
 
                         /* Badges */
-                        .fi-badge-color-primary {
-                            background: #fee2e2 !important;
-                            color: #991b1b !important;
-                            border: 1px solid #fca5a5 !important;
-                            font-weight: 700 !important;
-                        }
-                        .fi-badge-color-warning {
-                            background: #fef3c7 !important;
-                            color: #92400e !important;
-                            border: 1px solid #fde68a !important;
-                            font-weight: 700 !important;
-                        }
-                        .fi-badge-color-info {
-                            background: #ffedd5 !important;
-                            color: #9a3412 !important;
-                            border: 1px solid #fed7aa !important;
-                            font-weight: 700 !important;
-                        }
+                        .fi-badge-color-primary { background: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important; font-weight: 700 !important; }
+                        .fi-badge-color-warning { background: #fef3c7 !important; color: #92400e !important; border: 1px solid #fde68a !important; font-weight: 700 !important; }
+                        .fi-badge-color-info { background: #ffedd5 !important; color: #9a3412 !important; border: 1px solid #fed7aa !important; font-weight: 700 !important; }
 
                         /* Dropdowns */
                         .fi-dropdown-panel {
@@ -548,40 +588,24 @@ class AdminPanelProvider extends PanelProvider
                         }
 
                         /* Scrollbar Lazatto */
-                        ::-webkit-scrollbar {
-                            width: 6px;
-                            height: 6px;
-                        }
-                        ::-webkit-scrollbar-track {
-                            background: rgba(234, 88, 12, 0.05);
-                        }
-                        ::-webkit-scrollbar-thumb {
-                            background: #fdba74;
-                            border-radius: 9999px;
-                        }
-                        ::-webkit-scrollbar-thumb:hover {
-                            background: #ea580c;
-                        }
+                        ::-webkit-scrollbar { width: 6px; height: 6px; }
+                        ::-webkit-scrollbar-track { background: rgba(234, 88, 12, 0.05); }
+                        ::-webkit-scrollbar-thumb { background: #fdba74; border-radius: 9999px; }
+                        ::-webkit-scrollbar-thumb:hover { background: #ea580c; }
 
-                        /* ==========================================
-                           DARK MODE OVERRIDES
-                           ========================================== */
+                        /* DARK MODE OVERRIDES */
                         html.dark .fi-body,
                         html.dark .fi-layout,
                         html.dark .fi-main-ctn,
                         html.dark .fi-main {
                             background-color: #1a0a0a !important;
                         }
-
-                        /* Dark sidebar - tetap merah gelap tapi lebih dalam */
                         html.dark #fi-main-sidebar,
                         html.dark .fi-sidebar,
                         html.dark .fi-main-sidebar {
                             background: linear-gradient(180deg, #7f1d1d 0%, #450a0a 60%, #1c0505 100%) !important;
                             box-shadow: 4px 0 30px rgba(0, 0, 0, 0.6) !important;
                         }
-
-                        /* Dark topbar - lebih gelap dan elegan */
                         html.dark nav.fi-topbar,
                         html.dark .fi-topbar {
                             background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #c2410c 100%) !important;
@@ -594,154 +618,50 @@ class AdminPanelProvider extends PanelProvider
                             background: rgba(20, 5, 5, 0.6) !important;
                             border: 1px solid rgba(234, 88, 12, 0.35) !important;
                         }
-                        html.dark .fi-theme-switcher {
-                            background: #200707 !important;
-                            border: 1px solid rgba(234, 88, 12, 0.3) !important;
-                        }
-                        html.dark .fi-theme-switcher-btn {
-                            color: #fed7aa !important;
-                        }
-                        html.dark .fi-theme-switcher-btn svg {
-                            color: #fdba74 !important;
-                        }
-                        html.dark .fi-theme-switcher-btn:hover {
-                            background: #340c0c !important;
-                        }
-                        html.dark .fi-theme-switcher-btn.fi-active {
-                            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%) !important;
-                            border: 1px solid #fde047 !important;
-                        }
-                        html.dark .fi-theme-switcher-btn.fi-active svg {
-                            color: #ffffff !important;
-                        }
+                        html.dark .fi-theme-switcher { background: #200707 !important; border: 1px solid rgba(234, 88, 12, 0.3) !important; }
+                        html.dark .fi-theme-switcher-btn { color: #fed7aa !important; }
+                        html.dark .fi-theme-switcher-btn svg { color: #fdba74 !important; }
+                        html.dark .fi-theme-switcher-btn:hover { background: #340c0c !important; }
+                        
+                        /* ACTIVE THEME SWITCHER - KUNING DIUBAH KE PUTIH */
+                        html.dark .fi-theme-switcher-btn.fi-active { background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%) !important; border: 1px solid #ffffff !important; }
+                        html.dark .fi-theme-switcher-btn.fi-active svg { color: #ffffff !important; }
 
-                        /* Dark stat cards */
-                        html.dark .fi-wi-stats-overview-stat {
-                            background: linear-gradient(180deg, #1e0505 0%, #2d0a0a 100%) !important;
-                            border: 1px solid rgba(234, 88, 12, 0.4) !important;
-                            border-top: 4px solid #ea580c !important;
-                        }
-                        html.dark .fi-wi-stats-overview-stat-label {
-                            color: #fdba74 !important;
-                        }
-                        html.dark .fi-wi-stats-overview-stat-value {
-                            color: #fed7aa !important;
-                        }
+                        html.dark .fi-wi-stats-overview-stat { background: linear-gradient(180deg, #1e0505 0%, #2d0a0a 100%) !important; border: 1px solid rgba(234, 88, 12, 0.4) !important; border-top: 4px solid #ea580c !important; }
+                        html.dark .fi-wi-stats-overview-stat-label { color: #fdba74 !important; }
+                        html.dark .fi-wi-stats-overview-stat-value { color: #fed7aa !important; }
 
-                        /* Dark section cards */
-                        html.dark .fi-section {
-                            background: #1e0505 !important;
-                            border: 1px solid rgba(234, 88, 12, 0.3) !important;
-                        }
-                        html.dark .fi-section-header {
-                            background: linear-gradient(90deg, #2d0a0a 0%, #3b0f0f 100%) !important;
-                            border-bottom: 2px solid rgba(234, 88, 12, 0.4) !important;
-                        }
-                        html.dark .fi-header-heading,
-                        html.dark .fi-section-header-heading {
-                            color: #fed7aa !important;
-                        }
-                        html.dark .fi-wi-chart:first-of-type .fi-section {
-                            border-top: 4px solid #dc2626 !important;
-                        }
-                        html.dark .fi-wi-chart:nth-of-type(2) .fi-section,
-                        html.dark .fi-wi-chart:last-child .fi-section {
-                            background: linear-gradient(180deg, #1e0a00 0%, #150500 100%) !important;
-                            border-top: 4px solid #ea580c !important;
-                        }
-                        html.dark .fi-wi-chart:nth-of-type(2) .fi-section-header,
-                        html.dark .fi-wi-chart:last-child .fi-section-header {
-                            background: linear-gradient(90deg, #2d1505 0%, #3b1a0a 100%) !important;
-                        }
+                        html.dark .fi-section { background: #1e0505 !important; border: 1px solid rgba(234, 88, 12, 0.3) !important; }
+                        html.dark .fi-section-header { background: linear-gradient(90deg, #2d0a0a 0%, #3b0f0f 100%) !important; border-bottom: 2px solid rgba(234, 88, 12, 0.4) !important; }
+                        html.dark .fi-header-heading, html.dark .fi-section-header-heading { color: #fed7aa !important; }
+                        html.dark .fi-wi-chart:first-of-type .fi-section { border-top: 4px solid #dc2626 !important; }
+                        html.dark .fi-wi-chart:nth-of-type(2) .fi-section, html.dark .fi-wi-chart:last-child .fi-section { background: linear-gradient(180deg, #1e0a00 0%, #150500 100%) !important; border-top: 4px solid #ea580c !important; }
+                        html.dark .fi-wi-chart:nth-of-type(2) .fi-section-header, html.dark .fi-wi-chart:last-child .fi-section-header { background: linear-gradient(90deg, #2d1505 0%, #3b1a0a 100%) !important; }
 
-                        /* Dark tables */
-                        html.dark .fi-ta-ctn {
-                            background: #1e0505 !important;
-                            border: 1px solid rgba(234, 88, 12, 0.3) !important;
-                            border-top: 4px solid #dc2626 !important;
-                        }
-                        html.dark .fi-ta-header-cell {
-                            background: linear-gradient(90deg, #2d0a0a 0%, #2d1505 100%) !important;
-                            color: #fdba74 !important;
-                            border-bottom: 2px solid rgba(234, 88, 12, 0.4) !important;
-                        }
-                        html.dark .fi-ta-row:hover,
-                        html.dark .fi-ta-record:hover {
-                            background-color: #2d0a0a !important;
-                        }
-                        html.dark .fi-ta-cell {
-                            color: #fde8c8 !important;
-                        }
+                        html.dark .fi-ta-ctn { background: #1e0505 !important; border: 1px solid rgba(234, 88, 12, 0.3) !important; border-top: 4px solid #dc2626 !important; }
+                        html.dark .fi-ta-header-cell { background: linear-gradient(90deg, #2d0a0a 0%, #2d1505 100%) !important; color: #fdba74 !important; border-bottom: 2px solid rgba(234, 88, 12, 0.4) !important; }
+                        html.dark .fi-ta-row:hover, html.dark .fi-ta-record:hover { background-color: #2d0a0a !important; }
+                        html.dark .fi-ta-cell { color: #fde8c8 !important; }
 
-                        /* Dark modal / slide-over */
-                        html.dark .fi-modal-window {
-                            border: 1px solid rgba(234, 88, 12, 0.4) !important;
-                            border-left: 5px solid #ea580c !important;
-                        }
-                        html.dark .fi-modal-content {
-                            background: #1e0505 !important;
-                        }
-                        html.dark .fi-modal-footer {
-                            background: #2d0a0a !important;
-                            border-top: 1px solid rgba(234, 88, 12, 0.3) !important;
-                        }
+                        html.dark .fi-modal-window { border: 1px solid rgba(234, 88, 12, 0.4) !important; border-left: 5px solid #ea580c !important; }
+                        html.dark .fi-modal-content { background: #1e0505 !important; }
+                        html.dark .fi-modal-footer { background: #2d0a0a !important; border-top: 1px solid rgba(234, 88, 12, 0.3) !important; }
 
-                        /* Dark dropdowns */
-                        html.dark .fi-dropdown-panel {
-                            background: #1e0505 !important;
-                            border: 1px solid rgba(234, 88, 12, 0.3) !important;
-                        }
-                        html.dark .fi-dropdown-list-item:hover {
-                            background: #2d0a0a !important;
-                            color: #fdba74 !important;
-                        }
-                        html.dark .fi-dropdown-list-item {
-                            color: #fde8c8 !important;
-                        }
+                        html.dark .fi-dropdown-panel { background: #1e0505 !important; border: 1px solid rgba(234, 88, 12, 0.3) !important; }
+                        html.dark .fi-dropdown-list-item:hover { background: #2d0a0a !important; color: #fdba74 !important; }
+                        html.dark .fi-dropdown-list-item { color: #fde8c8 !important; }
 
-                        /* Dark badges */
-                        html.dark .fi-badge-color-primary {
-                            background: #450a0a !important;
-                            color: #fca5a5 !important;
-                            border-color: #7f1d1d !important;
-                        }
+                        html.dark .fi-badge-color-primary { background: #450a0a !important; color: #fca5a5 !important; border-color: #7f1d1d !important; }
 
-                        /* Dark form inputs */
-                        html.dark .fi-input,
-                        html.dark input.fi-input,
-                        html.dark .fi-fo-field-wrp input,
-                        html.dark .fi-fo-field-wrp textarea,
-                        html.dark .fi-fo-field-wrp select {
-                            background-color: #2d0a0a !important;
-                            color: #fde8c8 !important;
-                            border-color: rgba(234, 88, 12, 0.4) !important;
-                        }
-
-                        /* Dark page title */
-                        html.dark .fi-header-heading {
-                            color: #fed7aa !important;
-                        }
-
-                        /* Dark breadcrumb */
-                        html.dark .fi-breadcrumbs {
-                            color: #fdba74 !important;
-                        }
-
-                        /* Dark scrollbar */
-                        html.dark ::-webkit-scrollbar-track {
-                            background: rgba(127, 29, 29, 0.2);
-                        }
-                        html.dark ::-webkit-scrollbar-thumb {
-                            background: #7f1d1d;
-                        }
-                        html.dark ::-webkit-scrollbar-thumb:hover {
-                            background: #b91c1c;
-                        }
+                        html.dark .fi-input, html.dark input.fi-input, html.dark .fi-fo-field-wrp input, html.dark .fi-fo-field-wrp textarea, html.dark .fi-fo-field-wrp select { background-color: #2d0a0a !important; color: #fde8c8 !important; border-color: rgba(234, 88, 12, 0.4) !important; }
+                        html.dark .fi-breadcrumbs { color: #fdba74 !important; }
+                        html.dark ::-webkit-scrollbar-track { background: rgba(127, 29, 29, 0.2); }
+                        html.dark ::-webkit-scrollbar-thumb { background: #7f1d1d; }
+                        html.dark ::-webkit-scrollbar-thumb:hover { background: #b91c1c; }
 
                         /* ==========================================
                            RESPONSIVE - Mobile & Tablet
                            ========================================== */
-                        /* Topbar: responsive padding */
                         @media (max-width: 768px) {
                             nav.fi-topbar,
                             .fi-topbar {
@@ -749,7 +669,6 @@ class AdminPanelProvider extends PanelProvider
                             }
                         }
 
-                        /* Stats overview: wrap ke 2 kolom pada tablet, 1 kolom pada HP */
                         @media (max-width: 640px) {
                             .fi-wi-stats-overview {
                                 display: grid !important;
@@ -759,6 +678,12 @@ class AdminPanelProvider extends PanelProvider
                             .fi-wi-stats-overview-stat {
                                 border-radius: 1rem !important;
                             }
+                            .fi-section {
+                                border-radius: 1rem !important;
+                            }
+                            .fi-ta-ctn {
+                                border-radius: 1rem !important;
+                            }
                         }
                         @media (max-width: 400px) {
                             .fi-wi-stats-overview {
@@ -766,14 +691,31 @@ class AdminPanelProvider extends PanelProvider
                             }
                         }
 
-                        /* Section card full-radius pada mobile */
-                        @media (max-width: 640px) {
-                            .fi-section {
-                                border-radius: 1rem !important;
-                            }
-                            .fi-ta-ctn {
-                                border-radius: 1rem !important;
-                            }
+                        /* ==========================================
+                           LEGEND HIGHLIGHT - Pulsing & Glow Animation
+                           ========================================== */
+                        @keyframes legendPulse {
+                            0% { transform: scale(1); opacity: 0.75; }
+                            70% { transform: scale(2.5); opacity: 0; }
+                            100% { transform: scale(2.5); opacity: 0; }
+                        }
+
+                        @keyframes legendBorderGlow {
+                            0%, 100% { border-color: #f59e0b; box-shadow: 0 0 18px rgba(245, 158, 11, 0.28), 0 4px 14px rgba(234, 88, 12, 0.12); }
+                            50% { border-color: #ea580c; box-shadow: 0 0 24px rgba(234, 88, 12, 0.35), 0 4px 14px rgba(234, 88, 12, 0.18); }
+                        }
+
+                        .fi-legend-highlight {
+                            animation: legendBorderGlow 3s ease-in-out infinite !important;
+                        }
+
+                        html.dark .fi-legend-highlight {
+                            background: linear-gradient(135deg, #1c1305 0%, #200a0a 60%, #1e0a00 100%) !important;
+                            border-color: #b45309 !important;
+                            color: #fde8c8 !important;
+                        }
+                        html.dark .fi-legend-highlight div {
+                            color: #fde8c8 !important;
                         }
                     </style>
                 ')
@@ -827,39 +769,27 @@ class AdminPanelProvider extends PanelProvider
                             });
                             ' : '') . '
 
-                            // Intercept Filament notifications via Livewire events
                             if (typeof Livewire !== "undefined") {
                                 Livewire.hook("commit", ({ component, commit, respond, succeed, fail }) => {
                                     succeed(({ snapshot, effects }) => {
                                         if (effects.dispatches) {
                                             effects.dispatches.forEach(function(dispatch) {
                                                 if (dispatch.name === "notification-sent" || dispatch.name === "notificationSent") {
-                                                    // Handled by the observer below
+                                                    // Handled by observer
                                                 }
                                             });
                                         }
                                     });
                                 });
 
-                                // Listen for Filament notification events
                                 document.addEventListener("notification-sent", function(event) {
                                     let n = event.detail || {};
                                     let title = n.title || "Notifikasi";
                                     let body = n.body || "";
                                     let status = n.status || n.color || "success";
                                     
-                                    let iconMap = {
-                                        success: "success",
-                                        warning: "warning",
-                                        danger: "error",
-                                        info: "info"
-                                    };
-                                    let bgMap = {
-                                        success: "#f0fdf4",
-                                        warning: "#fffbeb",
-                                        danger: "#fef7ed",
-                                        info: "#eff6ff"
-                                    };
+                                    let iconMap = { success: "success", warning: "warning", danger: "error", info: "info" };
+                                    let bgMap = { success: "#f0fdf4", warning: "#fffbeb", danger: "#fef7ed", info: "#eff6ff" };
                                     
                                     Swal.fire({
                                         icon: iconMap[status] || "success",
@@ -875,7 +805,6 @@ class AdminPanelProvider extends PanelProvider
                                     });
                                 });
 
-                                // MutationObserver to detect Filament notification elements and trigger SweetAlert
                                 const observer = new MutationObserver(function(mutations) {
                                     mutations.forEach(function(mutation) {
                                         mutation.addedNodes.forEach(function(node) {
@@ -909,7 +838,6 @@ class AdminPanelProvider extends PanelProvider
                                                         customClass: { popup: "swal-rounded" }
                                                     });
                                                     
-                                                    // Hide original notification
                                                     notif.style.display = "none";
                                                 }
                                             }

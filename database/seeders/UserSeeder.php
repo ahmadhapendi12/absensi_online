@@ -12,10 +12,14 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $cabangPusat = CabangKantor::where('nama_cabang', 'Kantor Pusat Jakarta')->first();
-        $cabangBandung = CabangKantor::where('nama_cabang', 'Cabang Bandung')->first();
-        $cabangId = $cabangPusat ? $cabangPusat->id : null;
-        $cabangBandungId = $cabangBandung ? $cabangBandung->id : $cabangId;
+        // Sesuaikan nama cabang dengan yang ada di CabangKantorSeeder terbaru
+        $cabangCijeruk = CabangKantor::where('nama_cabang', 'Lazatto Cijeruk Chicken And Burger')->first();
+        $cabangCiruas = CabangKantor::where('nama_cabang', 'Lazatto Ciruas Chicken and Burger')->first();
+        $cabangTesting = CabangKantor::where('nama_cabang', 'Warung Mamah Nazwa (Titik Testing)')->first();
+        
+        $cabangCijerukId = $cabangCijeruk ? $cabangCijeruk->id : null;
+        $cabangCiruasId = $cabangCiruas ? $cabangCiruas->id : $cabangCijerukId;
+        $cabangTestingId = $cabangTesting ? $cabangTesting->id : $cabangCijerukId;
 
         // 1. Superadmin
         $superadmin = User::firstOrCreate(
@@ -24,7 +28,7 @@ class UserSeeder extends Seeder
                 'name'      => 'Super Admin',
                 'password'  => Hash::make('password123'),
                 'status'    => 'active',
-                'cabang_id' => $cabangId,
+                'cabang_id' => null, // Default ke Cijeruk
             ]
         );
         $superadmin->syncRoles(['superadmin']);
@@ -35,18 +39,18 @@ class UserSeeder extends Seeder
                 'nik'      => '99999999',
                 'name'     => 'Super Admin',
                 'telphone' => '081234567890',
-                'alamat'   => 'Kantor Pusat Jakarta',
+                'alamat'   => 'Kantor Pusat Lazatto',
             ]
         );
 
-        // 2. Karyawan 1 (Budi)
+        // 2. Karyawan 1 (Budi) - Ditempatkan di Cijeruk
         $karyawan1 = User::firstOrCreate(
             ['email' => 'karyawan@gmail.com'],
             [
                 'name'      => 'Budi Santoso',
                 'password'  => Hash::make('password123'),
                 'status'    => 'active',
-                'cabang_id' => $cabangId,
+                'cabang_id' => $cabangCijerukId,
             ]
         );
         $karyawan1->syncRoles(['karyawan']);
@@ -58,18 +62,18 @@ class UserSeeder extends Seeder
                 'name'              => 'Budi Santoso',
                 'tanggal_bergabung' => '2026-10-01',
                 'telphone'          => '081298765432',
-                'alamat'            => 'Jl. Sudirman No. 45, Jakarta',
+                'alamat'            => 'Jl. Sudirman No. 45',
             ]
         );
 
-        // 3. Karyawan 2 (Siti)
+        // 3. Karyawan 2 (Siti) - Ditempatkan di Ciruas
         $karyawan2 = User::firstOrCreate(
             ['email' => 'siti@gmail.com'],
             [
                 'name'      => 'Siti Rahma',
                 'password'  => Hash::make('password123'),
                 'status'    => 'active',
-                'cabang_id' => $cabangBandungId,
+                'cabang_id' => $cabangCiruasId,
             ]
         );
         $karyawan2->syncRoles(['karyawan']);
@@ -81,10 +85,33 @@ class UserSeeder extends Seeder
                 'name'              => 'Siti Rahma',
                 'tanggal_bergabung' => '2026-10-01',
                 'telphone'          => '081345678912',
-                'alamat'            => 'Jl. Riau No. 12, Bandung',
+                'alamat'            => 'Kawasan Ciruas',
             ]
         );
 
-        $this->command->info('User Seeder (3 Users + Profiles) Berhasil dibuat.');
+        // 4. Karyawan 3 (Tono) - Ditempatkan di Titik Testing Rumah
+        $karyawan3 = User::firstOrCreate(
+            ['email' => 'tono@gmail.com'],
+            [
+                'name'      => 'Tono Supriyanto',
+                'password'  => Hash::make('password123'),
+                'status'    => 'active',
+                'cabang_id' => $cabangTestingId, // Spesial buat testing dari rumah lo
+            ]
+        );
+        $karyawan3->syncRoles(['karyawan']);
+
+        UserProfile::updateOrCreate(
+            ['user_id' => $karyawan3->id],
+            [
+                'nik'               => '11223344',
+                'name'              => 'Tono Supriyanto',
+                'tanggal_bergabung' => '2026-10-01',
+                'telphone'          => '081555666777',
+                'alamat'            => 'Warung Mamah Nazwa',
+            ]
+        );
+
+        $this->command->info('User Seeder (4 Users + Profiles) Berhasil dibuat.');
     }
 }
