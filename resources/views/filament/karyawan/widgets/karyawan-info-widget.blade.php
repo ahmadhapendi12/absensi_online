@@ -16,8 +16,17 @@
             }
             .karyawan-profile-info {
                 display: flex;
-                align-items: flex-start;
+                align-items: center;
                 gap: 1.25rem;
+            }
+            @media (max-width: 480px) {
+                .karyawan-profile-info {
+                    gap: 0.875rem;
+                }
+                .karyawan-avatar-img {
+                    width: 64px;
+                    height: 64px;
+                }
             }
             .karyawan-avatar-box {
                 position: relative;
@@ -53,11 +62,12 @@
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 gap: 0.75rem;
-                margin-top: 1.25rem;
+                margin: 1.25rem auto 0 auto;
                 padding-top: 1.25rem;
                 border-top: 1px solid rgba(156, 163, 175, 0.2);
+                width: 100%;
             }
-            @media (min-width: 1024px) {
+            @media (min-width: 768px) {
                 .quick-actions-grid {
                     grid-template-columns: repeat(4, 1fr);
                     gap: 1rem;
@@ -65,14 +75,29 @@
             }
             .action-card {
                 display: flex;
+                flex-direction: column;
                 align-items: center;
-                gap: 0.75rem;
-                padding: 0.875rem 1rem;
-                border-radius: 0.75rem;
+                justify-content: center;
+                text-align: center;
+                gap: 0.5rem;
+                padding: 0.875rem 0.5rem;
+                border-radius: 0.875rem;
                 border: 1px solid rgba(156, 163, 175, 0.2);
                 background: rgba(255, 255, 255, 0.6);
                 text-decoration: none;
                 transition: all 0.2s ease-in-out;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            @media (min-width: 640px) {
+                .action-card {
+                    flex-direction: row;
+                    text-align: left;
+                    align-items: center;
+                    justify-content: flex-start;
+                    gap: 0.75rem;
+                    padding: 0.875rem 1rem;
+                }
             }
             .action-card:hover {
                 transform: translateY(-2px);

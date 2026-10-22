@@ -11,6 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(at: '*');
+        
         // Tambahkan 3 baris ini untuk mendaftarkan satpam kita:
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,

@@ -105,6 +105,17 @@
             border-color: rgba(239, 68, 68, 0.4);
             color: #fca5a5;
         }
+        .dark #app-modal-card {
+            background: #1f2937 !important;
+            color: #f9fafb !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
+        }
+        .dark #app-modal-title {
+            color: #f9fafb !important;
+        }
+        .dark #app-modal-message {
+            color: #d1d5db !important;
+        }
     </style>
 
     <!-- BANNER PERMINTAAN IZIN KAMERA & LOKASI -->
@@ -343,8 +354,8 @@
                     <div style="flex: 1;">
                         <div id="gps-text" style="font-size: 0.875rem; font-weight: 700;">Menghubungkan Sinyal GPS...</div>
                         <div id="gps-detail" style="font-size: 0.75rem; opacity: 0.75; margin-top: 2px;">Menghitung jarak ke titik koordinat cabang...</div>
-                        <button type="button" id="btn-simulate-gps" style="display: none; margin-top: 0.5rem; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 700; background: #10b981; color: #ffffff; border: none; cursor: pointer;">
-                            📍 Gunakan Lokasi Kantor (Simulasi Testing)
+                        <button type="button" id="btn-simulate-gps" style="display: none; margin-top: 0.625rem; padding: 0.5rem 0.875rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 700; background: #059669; color: #ffffff; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.3);">
+                            📍 Gunakan Titik Kantor (Mode Pengujian Laptop)
                         </button>
                     </div>
                 </div>
@@ -789,7 +800,11 @@
                             } else {
                                 isWithinRadius = false;
                                 if (gpsText) gpsText.innerText = 'Di Luar Radius Kantor';
-                                if (gpsDetail) gpsDetail.innerText = dist + ' meter dari cabang (Maksimal: ' + targetRadius + 'm, Akurasi: ±' + accuracy + 'm)';
+                                if (accuracy >= 250 || isLocalDev) {
+                                    if (gpsDetail) gpsDetail.innerHTML = dist + ' meter dari cabang (Maksimal: ' + targetRadius + 'm, Akurasi Laptop: ±' + accuracy + 'm).<br><span style="color: #f59e0b; font-weight: 600;">Laptop tidak memiliki chip satelit GPS (posisi dari IP/Wi-Fi ISP). Klik tombol hijau di bawah untuk pengujian:</span>';
+                                } else {
+                                    if (gpsDetail) gpsDetail.innerText = dist + ' meter dari cabang (Maksimal: ' + targetRadius + 'm, Akurasi: ±' + accuracy + 'm)';
+                                }
                                 if (gpsBadge) {
                                     gpsBadge.innerText = 'Di Luar Radius';
                                     gpsBadge.style.background = 'rgba(239, 68, 68, 0.2)';
@@ -862,21 +877,80 @@
                     };
                 }
 
+                // Fungsi Notifikasi Web In-App (Pengganti alert bawaan browser)
+                function showAppModal(title, message, type = 'error', callback = null) {
+                    const overlay = document.getElementById('app-modal-overlay');
+                    const card = document.getElementById('app-modal-card');
+                    const iconContainer = document.getElementById('app-modal-icon-container');
+                    const titleEl = document.getElementById('app-modal-title');
+                    const msgEl = document.getElementById('app-modal-message');
+                    const btnClose = document.getElementById('app-modal-btn-close');
+
+                    if (!overlay || !card) {
+                        window.alert(title + "\n" + message);
+                        if (typeof callback === 'function') callback();
+                        return;
+                    }
+
+                    titleEl.innerText = title;
+                    msgEl.innerText = message;
+
+                    if (type === 'success') {
+                        iconContainer.style.background = 'rgba(16, 185, 129, 0.15)';
+                        iconContainer.style.color = '#10b981';
+                        iconContainer.innerHTML = '<svg style="width: 32px; height: 32px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>';
+                        btnClose.style.background = '#10b981';
+                        btnClose.innerText = 'Selesai';
+                    } else if (type === 'warning') {
+                        iconContainer.style.background = 'rgba(245, 158, 11, 0.15)';
+                        iconContainer.style.color = '#f59e0b';
+                        iconContainer.innerHTML = '<svg style="width: 32px; height: 32px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+                        btnClose.style.background = '#f59e0b';
+                        btnClose.innerText = 'Mengerti';
+                    } else {
+                        iconContainer.style.background = 'rgba(239, 68, 68, 0.15)';
+                        iconContainer.style.color = '#ef4444';
+                        iconContainer.innerHTML = '<svg style="width: 32px; height: 32px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                        btnClose.style.background = '#ef4444';
+                        btnClose.innerText = 'Tutup';
+                    }
+
+                    overlay.style.display = 'flex';
+                    requestAnimationFrame(() => {
+                        card.style.transform = 'scale(1)';
+                        card.style.opacity = '1';
+                    });
+
+                    const closeHandler = () => {
+                        card.style.transform = 'scale(0.9)';
+                        card.style.opacity = '0';
+                        setTimeout(() => {
+                            overlay.style.display = 'none';
+                            if (typeof callback === 'function') {
+                                callback();
+                            }
+                        }, 180);
+                        btnClose.removeEventListener('click', closeHandler);
+                    };
+
+                    btnClose.addEventListener('click', closeHandler);
+                }
+
                 // 7. Tombol Submit Presensi: Ekstraksi Biometrik Instan dari Frame & Eksekusi Verifikasi
                 if (btnSubmit) {
                     btnSubmit.onclick = async function () {
                         if (!hasMasterFace) {
-                            alert('Data biometrik wajah belum terdaftar. Silakan lakukan perekaman wajah pada menu Profil Karyawan terlebih dahulu.');
+                            showAppModal('Biometrik Belum Terdaftar', 'Data biometrik wajah belum terdaftar. Silakan lakukan perekaman wajah pada menu Profil Karyawan terlebih dahulu.', 'warning');
                             return;
                         }
 
                         if (!isWithinRadius) {
-                            alert('Posisi Anda berada di luar radius kantor yang ditentukan.');
+                            showAppModal('Di Luar Radius Kantor', 'Posisi Anda berada di luar radius kantor yang ditentukan.', 'warning');
                             return;
                         }
 
                         if (!streamInstance || !video || video.paused || video.ended || video.videoWidth === 0) {
-                            alert('Kamera belum aktif. Pastikan kamera menyala dan mengarah ke wajah Anda.');
+                            showAppModal('Kamera Belum Aktif', 'Pastikan kamera aktif dan mengarah ke wajah Anda.', 'warning');
                             return;
                         }
 
@@ -891,7 +965,7 @@
                             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                         } catch(e) {
                             console.error('Snapshot error:', e);
-                            alert('Gagal mengambil frame foto dari kamera.');
+                            showAppModal('Gagal Mengambil Foto', 'Gagal mengambil frame foto dari kamera perangkat.', 'error');
                             btnSubmit.disabled = false;
                             btnSubmit.innerText = 'Coba Lagi';
                             checkReadyToSubmit();
@@ -909,7 +983,7 @@
                             ).withFaceLandmarks().withFaceDescriptor();
 
                             if (!snapshotDetection || snapshotDetection.detection.score < 0.70) {
-                                alert('Wajah tidak terdeteksi dengan jelas pada frame foto. Pastikan seluruh wajah Anda terlihat jelas, terang, dan menghadap lurus ke kamera.');
+                                showAppModal('Wajah Tidak Jelas', 'Wajah tidak terdeteksi dengan jelas pada frame foto. Pastikan seluruh wajah Anda terlihat jelas, terang, dan menghadap lurus ke kamera.', 'warning');
                                 btnSubmit.disabled = false;
                                 btnSubmit.innerText = 'Coba Lagi';
                                 checkReadyToSubmit();
@@ -919,7 +993,7 @@
                             liveDescriptor = Array.from(snapshotDetection.descriptor);
                         } catch(err) {
                             console.error('Biometric extraction error:', err);
-                            alert('Terjadi kesalahan saat memproses ekstraksi biometrik wajah.');
+                            showAppModal('Kesalahan Biometrik', 'Terjadi kesalahan saat memproses ekstraksi biometrik wajah.', 'error');
                             btnSubmit.disabled = false;
                             btnSubmit.innerText = 'Coba Lagi';
                             checkReadyToSubmit();
@@ -954,15 +1028,17 @@
                                     streamInstance.getTracks().forEach(track => track.stop());
                                 }
                                 if (faceTrackingInterval) clearInterval(faceTrackingInterval);
-                                alert(result.body.message || 'Presensi berhasil dicatat.');
-                                window.location.reload();
+                                showAppModal('Presensi Berhasil', result.body.message || 'Presensi berhasil dicatat.', 'success', () => {
+                                    window.location.reload();
+                                });
                             } else {
                                 const errorMsg = result.body.message || 
                                     (result.body.errors?.biometrik?.[0]) || 
                                     (result.body.errors?.lokasi?.[0]) || 
                                     (result.body.errors?.shift?.[0]) || 
                                     'Presensi tidak dapat diproses.';
-                                alert(errorMsg);
+                                const isBiometricError = errorMsg.toLowerCase().includes('biometrik') || errorMsg.toLowerCase().includes('wajah');
+                                showAppModal('Pemberitahuan Presensi', errorMsg, isBiometricError ? 'error' : 'warning');
                                 btnSubmit.disabled = false;
                                 btnSubmit.innerText = 'Coba Lagi';
                                 checkReadyToSubmit();
@@ -970,7 +1046,7 @@
                         })
                         .catch(err => {
                             console.error(err);
-                            alert('Terjadi kesalahan jaringan.');
+                            showAppModal('Kesalahan Jaringan', 'Terjadi kesalahan koneksi jaringan. Silakan periksa koneksi internet Anda.', 'error');
                             btnSubmit.disabled = false;
                             btnSubmit.innerText = 'Coba Lagi';
                             checkReadyToSubmit();
@@ -983,4 +1059,17 @@
             document.addEventListener('livewire:navigated', initPresensi);
         })();
     </script>
+
+    <!-- MODAL NOTIFIKASI WEB IN-APP (PENGGANTI ALERT BROWSER) -->
+    <div id="app-modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center; padding: 1.25rem;">
+        <div id="app-modal-card" style="background: #ffffff; border-radius: 1.25rem; width: 100%; max-width: 400px; padding: 1.75rem 1.5rem; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35); transform: scale(0.9); opacity: 0; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div id="app-modal-icon-container" style="width: 56px; height: 56px; border-radius: 9999px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center;">
+            </div>
+            <h3 id="app-modal-title" style="font-size: 1.15rem; font-weight: 800; margin: 0 0 0.5rem 0; color: #111827;"></h3>
+            <p id="app-modal-message" style="font-size: 0.875rem; line-height: 1.5; margin: 0 0 1.5rem 0; color: #4b5563;"></p>
+            <button type="button" id="app-modal-btn-close" style="width: 100%; padding: 0.75rem 1.25rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 700; color: #ffffff; border: none; cursor: pointer; transition: opacity 0.15s;">
+                Tutup
+            </button>
+        </div>
+    </div>
 </x-filament-panels::page>

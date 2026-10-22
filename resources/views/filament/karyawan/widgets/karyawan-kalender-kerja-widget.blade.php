@@ -184,17 +184,64 @@
                 color: #f9fafb;
                 border: 1px solid rgba(75, 85, 99, 0.5);
             }
+            .w-short { display: none; }
+            .gcal-cell-today {
+                background: rgba(245, 158, 11, 0.08) !important;
+                border: 1.5px solid #f59e0b !important;
+                border-radius: 0.375rem;
+            }
             @media (max-width: 640px) {
+                .w-full { display: none; }
+                .w-short { display: inline; font-size: 0.6875rem; font-weight: 800; }
+                .gcal-weekday {
+                    padding: 0.35rem 0.1rem;
+                    font-size: 0.6875rem;
+                }
                 .gcal-cell {
-                    min-height: 64px;
-                    padding: 0.25rem;
+                    min-height: 52px;
+                    padding: 0.1875rem;
+                    gap: 0.15rem;
+                }
+                .gcal-cell-header {
+                    justify-content: center;
+                    margin-bottom: 0.1rem;
+                }
+                .gcal-day-num {
+                    width: 20px;
+                    height: 20px;
+                    font-size: 0.6875rem;
+                }
+                .gcal-today-text {
+                    display: none !important;
                 }
                 .gcal-event-pill {
-                    font-size: 0.6rem;
-                    padding: 0.1rem 0.2rem;
+                    padding: 0.125rem 0.2rem;
+                    justify-content: center;
+                    min-height: 18px;
+                    gap: 0.15rem;
+                }
+                .gcal-event-pill .evt-label {
+                    display: none;
+                }
+                .gcal-event-pill .evt-icon {
+                    font-size: 0.75rem;
+                    line-height: 1;
                 }
                 .gcal-title {
-                    font-size: 1.1rem;
+                    font-size: 1.05rem;
+                }
+                .gcal-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 0.75rem;
+                }
+                .gcal-legend {
+                    font-size: 0.6875rem;
+                    gap: 0.25rem;
+                }
+                .gcal-legend-item {
+                    padding: 0.15rem 0.35rem;
+                    font-size: 0.6875rem;
                 }
             }
         </style>
@@ -237,19 +284,19 @@
             <div class="gcal-grid">
                 
                 <!-- HEADER HARI -->
-                <div class="gcal-weekday">Senin</div>
-                <div class="gcal-weekday">Selasa</div>
-                <div class="gcal-weekday">Rabu</div>
-                <div class="gcal-weekday">Kamis</div>
-                <div class="gcal-weekday">Jumat</div>
-                <div class="gcal-weekday">Sabtu</div>
-                <div class="gcal-weekday" style="color: #ef4444;">Minggu</div>
+                <div class="gcal-weekday"><span class="w-full">Senin</span><span class="w-short">Sen</span></div>
+                <div class="gcal-weekday"><span class="w-full">Selasa</span><span class="w-short">Sel</span></div>
+                <div class="gcal-weekday"><span class="w-full">Rabu</span><span class="w-short">Rab</span></div>
+                <div class="gcal-weekday"><span class="w-full">Kamis</span><span class="w-short">Kam</span></div>
+                <div class="gcal-weekday"><span class="w-full">Jumat</span><span class="w-short">Jum</span></div>
+                <div class="gcal-weekday"><span class="w-full">Sabtu</span><span class="w-short">Sab</span></div>
+                <div class="gcal-weekday" style="color: #ef4444;"><span class="w-full">Minggu</span><span class="w-short">Min</span></div>
 
                 <!-- CELLS TANGGAL -->
                 @foreach($days as $day)
                     <div 
                         wire:click="selectDate('{{ $day['date'] }}')"
-                        class="gcal-cell {{ !$day['isCurrentMonth'] ? 'gcal-cell-dimmed' : '' }} {{ $day['isBeforeRegistered'] ? 'gcal-cell-pre-register' : '' }}"
+                        class="gcal-cell {{ !$day['isCurrentMonth'] ? 'gcal-cell-dimmed' : '' }} {{ $day['isBeforeRegistered'] ? 'gcal-cell-pre-register' : '' }} {{ $day['isToday'] ? 'gcal-cell-today' : '' }}"
                         title="{{ $day['isBeforeRegistered'] ? 'Belum terdaftar sebagai karyawan pada tanggal ini' : 'Klik untuk detail: ' . $day['date'] }}"
                     >
                         <div class="gcal-cell-header">
@@ -257,17 +304,17 @@
                                 {{ $day['dayNumber'] }}
                             </span>
                             @if($day['isToday'])
-                                <span style="font-size: 0.625rem; font-weight: 800; color: #f59e0b; text-transform: uppercase;">Hari Ini</span>
+                                <span class="gcal-today-text" style="font-size: 0.625rem; font-weight: 800; color: #f59e0b; text-transform: uppercase;">Hari Ini</span>
                             @elseif($day['isBeforeRegistered'])
-                                <span style="font-size: 0.625rem; font-weight: 600; opacity: 0.5;">-</span>
+                                <span class="gcal-today-text" style="font-size: 0.625rem; font-weight: 600; opacity: 0.5;">-</span>
                             @endif
                         </div>
 
                         <!-- EVENT CHIPS -->
                         @foreach($day['events'] as $evt)
                             <div class="gcal-event-pill pill-{{ $evt['type'] }}" title="{{ $evt['tooltip'] }}">
-                                <span>{{ $evt['icon'] }}</span>
-                                <span style="overflow: hidden; text-overflow: ellipsis;">{{ $evt['label'] }}</span>
+                                <span class="evt-icon">{{ $evt['icon'] }}</span>
+                                <span class="evt-label" style="overflow: hidden; text-overflow: ellipsis;">{{ $evt['label'] }}</span>
                             </div>
                         @endforeach
                     </div>

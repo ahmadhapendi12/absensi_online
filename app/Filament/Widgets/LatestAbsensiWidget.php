@@ -13,7 +13,7 @@ class LatestAbsensiWidget extends TableWidget
 {
     protected static ?string $heading = 'Presensi Masuk Hari Ini';
 
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 2;
 
     protected int | string | array $columnSpan = 'full';
 
@@ -22,7 +22,7 @@ class LatestAbsensiWidget extends TableWidget
         return $table
             ->query(
                 Absensi::query()
-                    ->with(['user.profile', 'user.cabang'])
+                    ->with(['user.profile', 'user.cabang', 'jadwal.shift', 'user.jadwal.shift'])
                     ->where('tanggal', Carbon::today()->toDateString())
                     ->latest('jam_masuk')
             )
@@ -40,6 +40,18 @@ class LatestAbsensiWidget extends TableWidget
                     ->label('Cabang')
                     ->badge()
                     ->color('info'),
+                TextColumn::make('shift_kerja')
+                    ->label('Shift')
+                    ->badge()
+                    ->color('warning')
+                    ->state(fn ($record) => $record->jadwal?->shift?->nama_shift ?? $record->user?->jadwal?->shift?->nama_shift ?? '-')
+                    ->description(function ($record) {
+                        $shift = $record->jadwal?->shift ?? $record->user?->jadwal?->shift;
+                        if ($shift) {
+                            return Carbon::parse($shift->jam_masuk)->format('H:i') . ' - ' . Carbon::parse($shift->jam_pulang)->format('H:i');
+                        }
+                        return null;
+                    }),
                 TextColumn::make('jam_masuk')
                     ->label('Jam Masuk')
                     ->time('H:i')
