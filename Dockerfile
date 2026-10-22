@@ -1,7 +1,8 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.4-fpm-alpine
 
-# Install paket sistem yang dibutuhkan untuk kompilasi ekstensi PHP
+# Install paket sistem yang dibutuhkan untuk kompilasi ekstensi PHP & terminal bash
 RUN apk add --no-cache \
+    bash \
     postgresql-dev \
     libpng-dev \
     libjpeg-turbo-dev \
