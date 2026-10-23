@@ -33,12 +33,16 @@ class AbsensiForm
                 Grid::make(2)
                     ->schema([
                         TimePicker::make('jam_masuk')
-                            ->label('Jam Masuk')
+                            ->label('Jam Masuk (Format 24 Jam)')
                             ->prefixIcon('heroicon-o-clock')
+                            ->format('H:i')
+                            ->displayFormat('H:i')
                             ->seconds(false),
                         TimePicker::make('jam_pulang')
-                            ->label('Jam Pulang')
+                            ->label('Jam Pulang (Format 24 Jam)')
                             ->prefixIcon('heroicon-o-clock')
+                            ->format('H:i')
+                            ->displayFormat('H:i')
                             ->seconds(false),
                     ]),
 

@@ -37,20 +37,32 @@ class Absensi extends Model
     public function getStatusDisplayAttribute(): string
     {
         if ($this->jam_masuk && !$this->jam_pulang) {
-            $hariIni = \Carbon\Carbon::today()->toDateString();
-            $tglAbsen = \Carbon\Carbon::parse($this->tanggal)->toDateString();
+            $shift = $this->jadwal?->shift;
+            
+            if ($shift && $shift->jam_pulang) {
+                $isCrossDay = (bool) ($shift->lintas_hari || ($shift->jam_pulang < $shift->jam_masuk));
+                $batasAkhirMenit = (int) ($shift->batas_akhir_pulang_menit ?? 180);
+                
+                // Tentukan target datetime berakhirnya shift
+                $closingDateTime = \Carbon\Carbon::parse($this->tanggal)
+                    ->setTimeFromTimeString($shift->jam_pulang)
+                    ->addMinutes($batasAkhirMenit);
 
-            // Jika tanggal absen sudah lewat dari hari ini
-            if ($tglAbsen < $hariIni) {
-                return 'Tidak Absen Pulang';
-            }
+                if ($isCrossDay) {
+                    $closingDateTime->addDay();
+                }
 
-            // Jika hari ini tapi sudah lewat dari batas wajar shift (3 jam setelah jam pulang)
-            if ($this->jadwal?->shift) {
-                $jamPulangShift = \Carbon\Carbon::createFromTimeString($this->jadwal->shift->jam_pulang);
-                if (\Carbon\Carbon::now()->greaterThan($jamPulangShift->copy()->addHours(3))) {
+                if (\Carbon\Carbon::now()->greaterThan($closingDateTime)) {
                     return 'Tidak Absen Pulang';
                 }
+
+                return 'Sedang Berlangsung';
+            }
+
+            // Jika tidak ada data shift, fallback batas akhir jam 23:59:59 hari tersebut
+            $fallbackClosing = \Carbon\Carbon::parse($this->tanggal)->endOfDay();
+            if (\Carbon\Carbon::now()->greaterThan($fallbackClosing)) {
+                return 'Tidak Absen Pulang';
             }
 
             return 'Sedang Berlangsung';

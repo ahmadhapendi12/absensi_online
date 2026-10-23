@@ -15,6 +15,27 @@ class MasterShift extends Model
         'lintas_hari'
     ];
 
+    protected $casts = [
+        'lintas_hari' => 'boolean',
+    ];
+
+    protected static function booted(): void
+    {
+        static::saving(function ($shift) {
+            // Otomatis deteksi shift lintas hari jika jam pulang lebih kecil dari jam masuk
+            if ($shift->jam_masuk && $shift->jam_pulang) {
+                if ($shift->jam_pulang < $shift->jam_masuk) {
+                    $shift->lintas_hari = true;
+                }
+            }
+        });
+    }
+
+    public function getIsLintasHariAttribute(): bool
+    {
+        return (bool) ($this->lintas_hari || ($this->jam_masuk && $this->jam_pulang && $this->jam_pulang < $this->jam_masuk));
+    }
+
     public function jadwal()
     {
         return $this->hasMany(JadwalKaryawan::class, 'shift_id');

@@ -28,14 +28,34 @@ class MasterShiftForm
                         Grid::make(2)
                             ->schema([
                                 TimePicker::make('jam_masuk')
-                                    ->label('Jam Masuk Kerja')
+                                    ->label('Jam Masuk Kerja (Format 24 Jam)')
                                     ->prefixIcon('heroicon-o-clock')
+                                    ->format('H:i')
+                                    ->displayFormat('H:i')
                                     ->seconds(false)
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                                        $pulang = $get('jam_pulang');
+                                        if ($state && $pulang && $pulang < $state) {
+                                            $set('lintas_hari', true);
+                                        }
+                                    })
+                                    ->helperText('Contoh: 08:00, 13:00, 21:00')
                                     ->required(),
                                 TimePicker::make('jam_pulang')
-                                    ->label('Jam Pulang Kerja')
+                                    ->label('Jam Pulang Kerja (Format 24 Jam)')
                                     ->prefixIcon('heroicon-o-clock')
+                                    ->format('H:i')
+                                    ->displayFormat('H:i')
                                     ->seconds(false)
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                                        $masuk = $get('jam_masuk');
+                                        if ($state && $masuk && $state < $masuk) {
+                                            $set('lintas_hari', true);
+                                        }
+                                    })
+                                    ->helperText('Contoh: 16:00, 22:00, atau 06:00 (lintas hari)')
                                     ->required(),
                             ]),
                     ]),

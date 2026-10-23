@@ -39,8 +39,10 @@ class LemburKaryawanForm
                         Grid::make(2)
                             ->schema([
                                 TimePicker::make('jam_mulai_aktual')
-                                    ->label('Jam Mulai Lembur')
+                                    ->label('Jam Mulai Lembur (Format 24 Jam)')
                                     ->prefixIcon('heroicon-o-clock')
+                                    ->format('H:i')
+                                    ->displayFormat('H:i')
                                     ->seconds(false)
                                     ->default('17:00')
                                     ->live()
@@ -58,8 +60,10 @@ class LemburKaryawanForm
                                     ->required(),
 
                                 TimePicker::make('jam_selesai_aktual')
-                                    ->label('Jam Selesai Lembur')
+                                    ->label('Jam Selesai Lembur (Format 24 Jam)')
                                     ->prefixIcon('heroicon-o-clock')
+                                    ->format('H:i')
+                                    ->displayFormat('H:i')
                                     ->seconds(false)
                                     ->default('19:00')
                                     ->live()
