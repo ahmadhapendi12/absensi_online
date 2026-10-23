@@ -497,7 +497,9 @@
                             video.srcObject = stream;
                         }).catch(err => {
                             console.error('Kamera enroll error:', err);
-                            alert('Gagal mengakses kamera. Pastikan izin kamera telah diaktifkan di browser.');
+                        }).catch(err => {
+                            console.error('Kamera enroll error:', err);
+                            showAppModal('Gagal Mengakses Kamera', 'Pastikan izin kamera telah diaktifkan di peramban Anda. Klik ikon gembok 🔒 pada address bar jika kamera diblokir.', 'error');
                         });
                     }
                 };
@@ -505,49 +507,144 @@
                 if (btnSnap) {
                     btnSnap.onclick = async function() {
                         btnSnap.disabled = true;
-                        btnSnap.innerText = 'Menganalisis Wajah...';
-
-                        canvas.width = 360;
-                        canvas.height = 480;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(video, 0, 0, 360, 480);
-                        capturedBase64 = canvas.toDataURL('image/jpeg', 0.85);
-
-                        previewImg.src = capturedBase64;
-                        previewBox.style.display = 'block';
+                        btnSnap.innerText = 'Menganalisis Biometrik...';
 
                         // Ekstraksi 128-vektor deskriptor biometrik wajah
                         capturedDescriptor = null;
-                        if (window.faceapi && isEnrollModelsLoaded) {
-                            try {
-                                const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.70 }))
-                                    .withFaceLandmarks()
-                                    .withFaceDescriptor();
-                                if (detection && detection.detection.score >= 0.70) {
-                                    capturedDescriptor = JSON.stringify(Array.from(detection.descriptor));
-                                    btnSave.style.display = 'inline-flex';
-                                } else {
-                                    btnSave.style.display = 'none';
-                                    alert('Wajah tidak terdeteksi dengan jelas pada kamera. Pastikan wajah Anda terlihat tegak dan terang.');
-                                }
-                            } catch(e) {
-                                console.warn('Gagal ekstraksi biometrik:', e);
-                                btnSave.style.display = 'none';
-                            }
-                        } else {
-                            btnSave.style.display = 'none';
-                            alert('Model biometrik belum selesai dimuat. Harap tunggu sebentar.');
+                        capturedBase64 = null;
+                        btnSave.style.display = 'none';
+                        previewBox.style.display = 'none';
+
+                        if (!window.faceapi || !isEnrollModelsLoaded) {
+                            btnSnap.disabled = false;
+                            btnSnap.innerText = '📷 Jepret Foto';
+                            showAppModal('Model Biometrik Sedang Dimuat', 'Model AI pendeteksi wajah sedang dimuat. Harap tunggu beberapa saat kemudian coba lagi.', 'warning');
+                            return;
                         }
 
-                        btnSnap.disabled = false;
-                        btnSnap.innerText = 'Jepret Ulang';
+                        try {
+                            const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.75 });
+                            const detection = await faceapi.detectSingleFace(video, options)
+                                .withFaceLandmarks()
+                                .withFaceDescriptor();
+
+                            if (!detection || detection.detection.score < 0.75) {
+                                btnSnap.disabled = false;
+                                btnSnap.innerText = '📷 Jepret Ulang';
+                                showAppModal('Wajah Tidak Terdeteksi Jelas', 'Wajah tidak terdeteksi dengan jelas pada kamera. Pastikan pencahayaan cukup terang, tidak membelakangi cahaya, dan pandang langsung ke kamera.', 'warning');
+                                return;
+                            }
+
+                            const videoW = video.videoWidth || 640;
+                            const videoH = video.videoHeight || 480;
+                            const centerX = videoW / 2;
+                            const centerY = videoH / 2;
+                            const box = detection.detection.box;
+
+                            // 1. Validasi Batas Tepi (Wajah Tidak Boleh Terpotong Tepi Kamera)
+                            const marginX = videoW * 0.08;
+                            const marginY = videoH * 0.06;
+                            const isCutOff = (box.x < marginX) || 
+                                            (box.y < marginY) || 
+                                            ((box.x + box.width) > (videoW - marginX)) || 
+                                            ((box.y + box.height) > (videoH - marginY));
+
+                            if (isCutOff) {
+                                btnSnap.disabled = false;
+                                btnSnap.innerText = '📷 Jepret Ulang';
+                                showAppModal('Posisi Wajah Terpotong', 'Wajah Anda berada terlalu di tepi kamera sehingga terpotong. Posisikan seluruh wajah dan dagu Anda utuh di tengah area oval kamera.', 'warning');
+                                return;
+                            }
+
+                            // 2. Validasi Titik Tengah
+                            const faceX = box.x + box.width / 2;
+                            const faceY = box.y + box.height / 2;
+                            const diffX = Math.abs(faceX - centerX);
+                            const diffY = Math.abs(faceY - centerY);
+                            const isCentered = (diffX <= videoW * 0.20) && (diffY <= videoH * 0.22);
+
+                            if (!isCentered) {
+                                btnSnap.disabled = false;
+                                btnSnap.innerText = '📷 Jepret Ulang';
+                                showAppModal('Wajah Kurang ke Tengah', 'Posisikan wajah Anda tepat di bagian tengah panduan oval kamera.', 'warning');
+                                return;
+                            }
+
+                            // 3. Validasi Proporsi Ukuran Wajah
+                            const isProperSize = (box.width >= videoW * 0.25) && (box.width <= videoW * 0.68) && (box.height >= videoH * 0.28);
+                            if (!isProperSize) {
+                                btnSnap.disabled = false;
+                                btnSnap.innerText = '📷 Jepret Ulang';
+                                showAppModal(
+                                    box.width < videoW * 0.25 ? 'Wajah Terlalu Jauh' : 'Wajah Terlalu Dekat',
+                                    box.width < videoW * 0.25 ? 'Dekatkan wajah Anda ke kamera agar fitur wajah dapat terbaca jelas.' : 'Mundurkan posisi wajah Anda sedikit dari kamera.',
+                                    'warning'
+                                );
+                                return;
+                            }
+
+                            // 4. Validasi Kesimetrisan (Menghadap Lurus) & Kemiringan Kepala (Upright)
+                            const landmarks = detection.landmarks;
+                            const jaw = landmarks.getJawOutline();
+                            const nose = landmarks.getNose();
+                            const leftEye = landmarks.getLeftEye();
+                            const rightEye = landmarks.getRightEye();
+
+                            const noseTip = nose[3] || nose[0];
+                            const leftJaw = jaw[2] || jaw[0];
+                            const rightJaw = jaw[14] || jaw[16];
+                            const distLeft = Math.hypot(noseTip.x - leftJaw.x, noseTip.y - leftJaw.y);
+                            const distRight = Math.hypot(rightJaw.x - noseTip.x, rightJaw.y - noseTip.y);
+                            const symmetryRatio = distLeft / (distRight || 1);
+                            const isFacingFront = (symmetryRatio >= 0.65) && (symmetryRatio <= 1.50);
+
+                            const eyeDeltaY = Math.abs(leftEye[0].y - rightEye[3].y);
+                            const eyeDeltaX = Math.abs(leftEye[0].x - rightEye[3].x);
+                            const tiltRatio = eyeDeltaY / (eyeDeltaX || 1);
+                            const isUpright = (tiltRatio <= 0.22);
+
+                            if (!isFacingFront) {
+                                btnSnap.disabled = false;
+                                btnSnap.innerText = '📷 Jepret Ulang';
+                                showAppModal('Hadapkan Wajah Lurus', 'Wajah Anda menoleh ke samping. Pastikan Anda menghadap lurus ke depan ke arah kamera.', 'warning');
+                                return;
+                            }
+
+                            if (!isUpright) {
+                                btnSnap.disabled = false;
+                                btnSnap.innerText = '📷 Jepret Ulang';
+                                showAppModal('Posisikan Kepala Tegak', 'Kepala Anda dalam posisi miring. Tegakkan kepala Anda sejajar dengan kamera.', 'warning');
+                                return;
+                            }
+
+                            // Seluruh Validasi Ketat Lolos: Simpan Frame & Deskriptor Biometrik
+                            canvas.width = 360;
+                            canvas.height = 480;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(video, 0, 0, 360, 480);
+                            capturedBase64 = canvas.toDataURL('image/jpeg', 0.88);
+                            capturedDescriptor = JSON.stringify(Array.from(detection.descriptor));
+
+                            previewImg.src = capturedBase64;
+                            previewBox.style.display = 'block';
+                            btnSave.style.display = 'inline-flex';
+
+                            showAppModal('Wajah Berhasil Dipindai', 'Posisi wajah Anda tegak, jelas, dan memenuhi standar biometrik. Klik tombol "Simpan Sebagai Wajah Master" di bawah.', 'success');
+
+                        } catch(e) {
+                            console.warn('Gagal analisis biometrik:', e);
+                            showAppModal('Kesalahan Analisis', 'Terjadi kesalahan saat memproses fitur biometrik wajah. Silakan coba lagi.', 'error');
+                        } finally {
+                            btnSnap.disabled = false;
+                            btnSnap.innerText = '📷 Jepret Ulang';
+                        }
                     };
                 }
 
                 if (btnSave) {
                     btnSave.onclick = function() {
                         if (!capturedBase64 || !capturedDescriptor) {
-                            alert('Wajah belum terdeteksi dengan benar. Silakan lakukan pengambilan foto kembali.');
+                            showAppModal('Wajah Belum Terverifikasi', 'Silakan jepret foto dengan posisi wajah tegak dan jelas sebelum menyimpan.', 'warning');
                             return;
                         }
                         btnSave.disabled = true;
@@ -559,6 +656,9 @@
                                 streamInstance.getTracks().forEach(track => track.stop());
                             }
                             boxCam.style.display = 'none';
+                            showAppModal('Biometrik Disimpan', 'Data wajah acuan Anda berhasil didaftarkan dan siap digunakan untuk presensi.', 'success', () => {
+                                window.location.reload();
+                            });
                         });
                     };
                 }
@@ -575,8 +675,73 @@
                 }
             }
 
+            function showAppModal(title, message, iconType = 'error', onClose = null) {
+                const overlay = document.getElementById('app-modal-overlay');
+                const card = document.getElementById('app-modal-card');
+                const titleEl = document.getElementById('app-modal-title');
+                const msgEl = document.getElementById('app-modal-message');
+                const iconBox = document.getElementById('app-modal-icon-container');
+                const btnCloseModal = document.getElementById('app-modal-btn-close');
+
+                if (!overlay || !card) {
+                    window.alert(title + "\n\n" + message);
+                    if (typeof onClose === 'function') onClose();
+                    return;
+                }
+
+                titleEl.innerText = title;
+                msgEl.innerText = message;
+
+                if (iconType === 'success') {
+                    iconBox.style.background = 'rgba(16, 185, 129, 0.15)';
+                    iconBox.style.color = '#059669';
+                    iconBox.innerHTML = '<svg style="width: 32px; height: 32px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>';
+                    btnCloseModal.style.background = '#10b981';
+                    btnCloseModal.innerText = 'Selesai';
+                } else if (iconType === 'warning') {
+                    iconBox.style.background = 'rgba(245, 158, 11, 0.15)';
+                    iconBox.style.color = '#d97706';
+                    iconBox.innerHTML = '<svg style="width: 32px; height: 32px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+                    btnCloseModal.style.background = '#f59e0b';
+                    btnCloseModal.innerText = 'Mengerti';
+                } else {
+                    iconBox.style.background = 'rgba(239, 68, 68, 0.15)';
+                    iconBox.style.color = '#dc2626';
+                    iconBox.innerHTML = '<svg style="width: 32px; height: 32px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                    btnCloseModal.style.background = '#ef4444';
+                    btnCloseModal.innerText = 'Tutup';
+                }
+
+                overlay.style.display = 'flex';
+                requestAnimationFrame(() => {
+                    card.style.transform = 'scale(1)';
+                    card.style.opacity = '1';
+                });
+
+                btnCloseModal.onclick = function() {
+                    card.style.transform = 'scale(0.9)';
+                    card.style.opacity = '0';
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        if (typeof onClose === 'function') onClose();
+                    }, 180);
+                };
+            }
+
             document.addEventListener('DOMContentLoaded', initEnrollCam);
             document.addEventListener('livewire:navigated', initEnrollCam);
         })();
     </script>
+
+    <!-- MODAL WEB IN-APP UNTUK PEMBERITAHUAN BIOMETRIK -->
+    <div id="app-modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center; padding: 1.25rem;">
+        <div id="app-modal-card" style="background: #ffffff; border-radius: 1.25rem; width: 100%; max-width: 400px; padding: 1.75rem 1.5rem; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35); transform: scale(0.9); opacity: 0; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div id="app-modal-icon-container" style="width: 56px; height: 56px; border-radius: 9999px; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center;"></div>
+            <h3 id="app-modal-title" style="font-size: 1.15rem; font-weight: 800; margin: 0 0 0.5rem 0; color: #111827;"></h3>
+            <p id="app-modal-message" style="font-size: 0.875rem; line-height: 1.5; margin: 0 0 1.5rem 0; color: #4b5563;"></p>
+            <button type="button" id="app-modal-btn-close" style="width: 100%; padding: 0.75rem 1.25rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 700; color: #ffffff; border: none; cursor: pointer; transition: opacity 0.15s;">
+                Mengerti
+            </button>
+        </div>
+    </div>
 </x-filament-panels::page>

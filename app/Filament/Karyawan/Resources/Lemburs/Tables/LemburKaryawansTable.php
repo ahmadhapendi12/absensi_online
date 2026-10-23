@@ -10,6 +10,7 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 
 class LemburKaryawansTable
 {
@@ -18,16 +19,79 @@ class LemburKaryawansTable
         return $table
             ->striped()
             ->columns([
-                // Mode Ringkas Khusus Tampilan Layar HP (< md)
+                // Mode Ringkas & Responsif Khusus Tampilan Layar HP (< md) Tanpa Perlu Scroll Samping
                 TextColumn::make('mobile_summary')
-                    ->label('Tanggal & Waktu')
-                    ->getStateUsing(fn ($record) => Carbon::parse($record->tanggal)->format('d M Y'))
-                    ->description(function ($record) {
+                    ->label('Rincian Lembur')
+                    ->html()
+                    ->getStateUsing(function ($record) {
+                        $tgl = Carbon::parse($record->tanggal)->format('d M Y');
                         $hari = Carbon::parse($record->tanggal)->translatedFormat('l');
                         $mulai = $record->jam_mulai_aktual ? Carbon::parse($record->jam_mulai_aktual)->format('H:i') : '-';
                         $selesai = $record->jam_selesai_aktual ? Carbon::parse($record->jam_selesai_aktual)->format('H:i') : '-';
-                        $durasi = round($record->durasi_menit / 60, 1) . ' jam';
-                        return "{$hari} • {$mulai}-{$selesai} ({$durasi})";
+                        $durasi = round($record->durasi_menit / 60, 1) . ' Jam';
+
+                        $badgeAccColor = match ($record->status_pengajuan) {
+                            'Disetujui' => '#059669',
+                            'Ditolak' => '#dc2626',
+                            default => '#d97706',
+                        };
+                        $badgeAccBg = match ($record->status_pengajuan) {
+                            'Disetujui' => 'rgba(16, 185, 129, 0.15)',
+                            'Ditolak' => 'rgba(239, 68, 68, 0.15)',
+                            default => 'rgba(245, 158, 11, 0.15)',
+                        };
+
+                        $progresText = 'Siap Mulai';
+                        $progresColor = '#2563eb';
+                        $progresBg = 'rgba(37, 99, 235, 0.12)';
+
+                        if ($record->status_pengajuan !== 'Disetujui') {
+                            $progresText = $record->status_pengajuan;
+                            $progresColor = $badgeAccColor;
+                            $progresBg = $badgeAccBg;
+                        } elseif ($record->foto_mulai && $record->foto_selesai) {
+                            $progresText = 'Lembur Selesai';
+                            $progresColor = '#059669';
+                            $progresBg = 'rgba(16, 185, 129, 0.15)';
+                        } elseif ($record->foto_mulai && !$record->foto_selesai) {
+                            $progresText = 'Sedang Berlangsung';
+                            $progresColor = '#d97706';
+                            $progresBg = 'rgba(245, 158, 11, 0.15)';
+                        }
+
+                        $alasan = e(\Illuminate\Support\Str::limit($record->alasan_lembur, 45));
+
+                        $fotoBuktiBadge = '';
+                        if ($record->foto_mulai && $record->foto_selesai) {
+                            $fotoBuktiBadge = '<span style="font-size: 0.6875rem; color: #059669; font-weight: 600;">📷 Foto Masuk & Pulang ✓</span>';
+                        } elseif ($record->foto_mulai) {
+                            $fotoBuktiBadge = '<span style="font-size: 0.6875rem; color: #d97706; font-weight: 600;">📷 Foto Masuk ✓</span>';
+                        }
+
+                        return new HtmlString("
+                            <div style='display: flex; flex-direction: column; gap: 0.35rem; padding: 0.25rem 0;'>
+                                <div style='display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;'>
+                                    <strong style='font-size: 0.9375rem;'>{$hari}, {$tgl}</strong>
+                                    <span style='padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 700; background: {$badgeAccBg}; color: {$badgeAccColor};'>
+                                        {$record->status_pengajuan}
+                                    </span>
+                                </div>
+                                <div style='display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; opacity: 0.9;'>
+                                    <span>⏰ {$mulai} - {$selesai} WIB</span>
+                                    <span style='opacity: 0.5;'>•</span>
+                                    <span style='font-weight: 700; color: #f59e0b;'>{$durasi}</span>
+                                </div>
+                                <div style='font-size: 0.75rem; opacity: 0.75; font-style: italic;'>
+                                    \"{$alasan}\"
+                                </div>
+                                <div style='display: flex; align-items: center; justify-content: space-between; margin-top: 0.125rem;'>
+                                    <span style='padding: 0.125rem 0.45rem; border-radius: 0.375rem; font-size: 0.6875rem; font-weight: 700; background: {$progresBg}; color: {$progresColor};'>
+                                        {$progresText}
+                                    </span>
+                                    {$fotoBuktiBadge}
+                                </div>
+                            </div>
+                        ");
                     })
                     ->hiddenFrom('md'),
 
@@ -68,7 +132,8 @@ class LemburKaryawansTable
                         'Disetujui' => 'success',
                         'Ditolak' => 'danger',
                         default => 'warning',
-                    }),
+                    })
+                    ->visibleFrom('md'),
 
                 TextColumn::make('progres_lembur')
                     ->label('Pelaksanaan')
@@ -91,21 +156,22 @@ class LemburKaryawansTable
                         'Siap Mulai' => 'info',
                         'Ditolak' => 'danger',
                         default => 'gray',
-                    }),
+                    })
+                    ->visibleFrom('md'),
 
                 ImageColumn::make('foto_mulai')
                     ->label('Foto Masuk')
                     ->disk('public')
                     ->circular()
                     ->placeholder('-')
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('md'),
 
                 ImageColumn::make('foto_selesai')
                     ->label('Foto Pulang')
                     ->disk('public')
                     ->circular()
                     ->placeholder('-')
-                    ->visibleFrom('lg'),
+                    ->visibleFrom('md'),
             ])
             ->filters([
                 SelectFilter::make('status_pengajuan')
@@ -118,7 +184,7 @@ class LemburKaryawansTable
             ->recordActions([
                 // AKSI 1: PRESENSI MASUK LEMBUR (Kamera & GPS Biometrik)
                 Action::make('mulaiLembur')
-                    ->label('Presensi Masuk Lembur')
+                    ->label('Presensi Masuk')
                     ->icon('heroicon-o-camera')
                     ->color('warning')
                     ->visible(fn ($record) => $record->status_pengajuan === 'Disetujui' && empty($record->foto_mulai))
@@ -126,7 +192,7 @@ class LemburKaryawansTable
 
                 // AKSI 2: PRESENSI PULANG LEMBUR (Kamera & GPS Biometrik)
                 Action::make('selesaiLembur')
-                    ->label('Presensi Pulang Lembur')
+                    ->label('Presensi Pulang')
                     ->icon('heroicon-o-camera')
                     ->color('success')
                     ->visible(fn ($record) => $record->status_pengajuan === 'Disetujui' && ! empty($record->foto_mulai) && empty($record->foto_selesai))
@@ -134,7 +200,7 @@ class LemburKaryawansTable
 
                 ViewAction::make()
                     ->iconButton()
-                    ->tooltip('Lihat Detail'),
+                    ->tooltip('Lihat Detail Lengkap'),
                 DeleteAction::make()
                     ->label('Batalkan')
                     ->iconButton()

@@ -499,8 +499,14 @@
 
                 loadFaceApiModels();
 
-                function updatePersistentPermissionBar() {
+                function updatePersistentPermissionBar(forceShow = false) {
                     if (!persistentPermBar) return;
+
+                    const isCamLive = Boolean(streamInstance && streamInstance.active);
+                    const isGpsLive = Boolean(currentLat !== null && currentLng !== null) || isSimulatedGps;
+
+                    if (isCamLive) isCameraAllowed = true;
+                    if (isGpsLive) isGpsAllowed = true;
 
                     if (permCamBadge) {
                         if (isCameraAllowed) {
@@ -532,33 +538,20 @@
 
                     if (isCameraAllowed && isGpsAllowed) {
                         persistentPermBar.style.display = 'none';
-                    } else {
+                    } else if (forceShow) {
                         persistentPermBar.style.display = 'block';
                     }
                 }
 
-                updatePersistentPermissionBar();
+                // Jangan tampilkan banner di awal karena browser masih sedang meminta izin
+                persistentPermBar.style.display = 'none';
 
-                // 2. Cek Status Izin Browser
-                if (navigator.permissions && navigator.permissions.query) {
-                    navigator.permissions.query({ name: 'camera' }).then(res => {
-                        if (res.state === 'granted') isCameraAllowed = true;
-                        updatePersistentPermissionBar();
-                        res.onchange = () => {
-                            isCameraAllowed = res.state === 'granted';
-                            updatePersistentPermissionBar();
-                        };
-                    }).catch(() => {});
-
-                    navigator.permissions.query({ name: 'geolocation' }).then(res => {
-                        if (res.state === 'granted') isGpsAllowed = true;
-                        updatePersistentPermissionBar();
-                        res.onchange = () => {
-                            isGpsAllowed = res.state === 'granted';
-                            updatePersistentPermissionBar();
-                        };
-                    }).catch(() => {});
-                }
+                // Timer cadangan: jika setelah 4 detik ada izin yang belum aktif, tampilkan banner
+                setTimeout(() => {
+                    if (!isCameraAllowed || !isGpsAllowed) {
+                        updatePersistentPermissionBar(true);
+                    }
+                }, 4000);
 
                 function checkReadyToSubmit() {
                     if (!btnSubmit) return;
@@ -732,6 +725,8 @@
                             updatePersistentPermissionBar();
                             video.srcObject = stream;
                             video.onloadedmetadata = () => {
+                                isCameraAllowed = true;
+                                updatePersistentPermissionBar();
                                 if (cameraLoading) cameraLoading.style.display = 'none';
                                 if (permissionBlockedBox) permissionBlockedBox.style.display = 'none';
                                 if (cameraStatusLabel) cameraStatusLabel.innerText = 'Live Kamera Aktif';
@@ -744,7 +739,7 @@
                         }).catch(err => {
                             console.warn('Kamera WebRTC belum diizinkan atau tidak tersedia:', err.name || err);
                             isCameraAllowed = false;
-                            updatePersistentPermissionBar();
+                            updatePersistentPermissionBar(true);
                             if (camLoadingSpinner) camLoadingSpinner.style.display = 'none';
                             if (camErrorBox) camErrorBox.style.display = 'block';
                             if (cameraStatusLabel) cameraStatusLabel.innerText = 'Kamera Diblokir';
@@ -753,7 +748,7 @@
                         });
                     } else {
                         isCameraAllowed = false;
-                        updatePersistentPermissionBar();
+                        updatePersistentPermissionBar(true);
                         if (camLoadingSpinner) camLoadingSpinner.style.display = 'none';
                         if (camErrorBox) camErrorBox.style.display = 'block';
                         if (cameraStatusLabel) cameraStatusLabel.innerText = 'Peramban Tidak Mendukung Live';
@@ -845,7 +840,7 @@
                         error => {
                             console.warn('GPS Error:', error);
                             isGpsAllowed = false;
-                            updatePersistentPermissionBar();
+                            updatePersistentPermissionBar(true);
                             if (gpsText) gpsText.innerText = 'Sinyal GPS Tidak Terdeteksi';
                             if (gpsDetail) gpsDetail.innerText = 'Aktifkan izin lokasi dan GPS pada perangkat Anda.';
                             if (btnSimulateGps) btnSimulateGps.style.display = 'inline-block';
@@ -862,15 +857,24 @@
                         if (navigator.geolocation) {
                             navigator.geolocation.getCurrentPosition(
                                 pos => {
+                                    currentLat = pos.coords.latitude;
+                                    currentLng = pos.coords.longitude;
                                     isGpsAllowed = true;
                                     updatePersistentPermissionBar();
                                 },
                                 err => {
                                     console.warn('GPS trigger error:', err);
+                                    isGpsAllowed = false;
+                                    updatePersistentPermissionBar(true);
                                     if (permissionBlockedBox) {
                                         permissionBlockedBox.style.display = 'block';
                                         permissionBlockedBox.scrollIntoView({ behavior: 'smooth' });
                                     }
+                                    showAppModal(
+                                        'Izin Akses Diblokir',
+                                        'Akses kamera atau GPS saat ini belum aktif atau ditolak di peramban Anda.\n\nLangkah mengizinkan:\n1. Klik ikon gembok 🔒 di samping kiri alamat web browser.\n2. Ubah izin Kamera dan Lokasi menjadi "Izinkan" (Allow).\n3. Muat ulang halaman.',
+                                        'warning'
+                                    );
                                 },
                                 { enableHighAccuracy: true, timeout: 5000 }
                             );

@@ -415,18 +415,89 @@
                 const gpsStatusText = document.getElementById('gps-status-text');
                 const faceDetectionStatus = document.getElementById('face-detection-status');
 
+                const persistentPermBar = document.getElementById('persistent-permission-bar');
+                const permCamBadge = document.getElementById('perm-cam-badge');
+                const permGpsBadge = document.getElementById('perm-gps-badge');
+                const btnTriggerPerms = document.getElementById('btn-trigger-all-permissions');
+
+                let isCameraAllowed = false;
+                let isGpsAllowed = false;
+
+                function updatePersistentPermissionBar(forceShow = false) {
+                    if (!persistentPermBar) return;
+                    const isCamLive = Boolean(streamInstance && streamInstance.active);
+                    const isGpsLive = Boolean(currentLat !== null && currentLng !== null);
+
+                    if (isCamLive) isCameraAllowed = true;
+                    if (isGpsLive) isGpsAllowed = true;
+
+                    if (permCamBadge) {
+                        if (isCameraAllowed) {
+                            permCamBadge.innerHTML = '📷 Kamera: Diizinkan ✓';
+                            permCamBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+                            permCamBadge.style.color = '#059669';
+                        } else {
+                            permCamBadge.innerHTML = '📷 Kamera: Belum Diizinkan ⚠️';
+                            permCamBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+                            permCamBadge.style.color = '#dc2626';
+                        }
+                    }
+
+                    if (permGpsBadge) {
+                        if (isGpsAllowed) {
+                            permGpsBadge.innerHTML = '📍 GPS: Diizinkan ✓';
+                            permGpsBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+                            permGpsBadge.style.color = '#059669';
+                        } else {
+                            permGpsBadge.innerHTML = '📍 GPS: Belum Diizinkan ⚠️';
+                            permGpsBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+                            permGpsBadge.style.color = '#dc2626';
+                        }
+                    }
+
+                    if (isCameraAllowed && isGpsAllowed) {
+                        persistentPermBar.style.display = 'none';
+                    } else if (forceShow) {
+                        persistentPermBar.style.display = 'block';
+                    }
+                }
+
+                if (persistentPermBar) persistentPermBar.style.display = 'none';
+
+                if (btnTriggerPerms) {
+                    btnTriggerPerms.onclick = function() {
+                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+                                .then(s => {
+                                    streamInstance = s;
+                                    isCameraAllowed = true;
+                                    if (video) { video.srcObject = s; video.play(); }
+                                    updatePersistentPermissionBar();
+                                })
+                                .catch(() => {
+                                    updatePersistentPermissionBar(true);
+                                    showAppModal('Akses Ditolak', 'Akses kamera atau GPS diblokir oleh peramban. Silakan klik ikon gembok 🔒 di samping URL browser, ubah izin menjadi "Izinkan", lalu refresh.', 'warning');
+                                });
+                        }
+                    };
+                }
+
                 // 1. Dapatkan GPS
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         pos => {
                             currentLat = pos.coords.latitude;
                             currentLng = pos.coords.longitude;
+                            isGpsAllowed = true;
+                            updatePersistentPermissionBar();
                             const dist = getDistanceMeters(currentLat, currentLng, targetLat, targetLng);
                             if (gpsStatusText) {
                                 gpsStatusText.innerText = '📍 ' + Math.round(dist) + 'm dari Outlet';
                             }
                         },
                         err => {
+                            isGpsAllowed = false;
+                            updatePersistentPermissionBar(true);
                             if (gpsStatusText) gpsStatusText.innerText = '📍 GPS Standby (Akurasi Rendah)';
                         },
                         { enableHighAccuracy: true, timeout: 8000 }
@@ -462,9 +533,13 @@
                         await video.play();
                     }
                     isCameraActive = true;
+                    isCameraAllowed = true;
+                    updatePersistentPermissionBar();
                     if (loadingOverlay) loadingOverlay.style.display = 'none';
                     if (statusLabel) statusLabel.innerText = 'Kamera Aktif';
                 } catch(err) {
+                    isCameraAllowed = false;
+                    updatePersistentPermissionBar(true);
                     if (loadingText) loadingText.innerText = 'Kamera Gagal Dibuka. Harap Izinkan Akses.';
                     return;
                 }
