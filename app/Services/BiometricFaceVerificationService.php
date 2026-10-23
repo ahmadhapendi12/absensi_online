@@ -33,49 +33,10 @@ class BiometricFaceVerificationService
         $hariIni = Carbon::today()->toDateString();
         $jamSekarang = Carbon::now()->toTimeString();
 
-        // 1. Validasi Keberadaan Data Biometrik Master Karyawan
-        $profile = $user->profile;
-        if (!$profile || !$profile->foto_wajah_acuan) {
-            throw ValidationException::withMessages([
-                'biometrik' => 'Data biometrik wajah belum terdaftar. Silakan lakukan perekaman wajah pada menu Profil Karyawan terlebih dahulu.',
-            ]);
-        }
+        // 1. Verifikasi Biometrik Wajah dan Lokasi Kantor secara Terpusat
+        $this->verifikasiBiometrikDanLokasi($user, $koordinat, $liveDescriptorJson);
 
-        if (empty($profile->face_descriptor)) {
-            throw ValidationException::withMessages([
-                'biometrik' => 'Data vektor biometrik acuan belum lengkap. Silakan rekam ulang wajah pada menu Profil Karyawan.',
-            ]);
-        }
-
-        // 2. Evaluasi Kecocokan Biometrik Vektor Wajah Secara Ketat
-        if (empty($liveDescriptorJson)) {
-            throw ValidationException::withMessages([
-                'biometrik' => 'Biometrik wajah tidak terdeteksi pada kamera saat presensi. Pastikan seluruh wajah Anda menghadap lurus ke kamera.',
-            ]);
-        }
-
-        $masterVector = json_decode($profile->face_descriptor, true);
-        $liveVector = json_decode($liveDescriptorJson, true);
-
-        if (!is_array($masterVector) || !is_array($liveVector) || count($masterVector) !== 128 || count($liveVector) !== 128) {
-            throw ValidationException::withMessages([
-                'biometrik' => 'Format data biometrik tidak valid. Silakan ulangi pemindaian kamera.',
-            ]);
-        }
-
-        $distance = $this->calculateEuclideanDistance($masterVector, $liveVector);
-
-        // Jika jarak Euclidean melebihi threshold 0.48, tolak presensi
-        if ($distance > self::FACE_DISTANCE_THRESHOLD) {
-            throw ValidationException::withMessages([
-                'biometrik' => 'Verifikasi biometrik gagal: Wajah tidak sesuai dengan data acuan terdaftar.',
-            ]);
-        }
-
-        // 3. Validasi Lokasi Koordinat GPS Terhadap Radius Kantor Cabang
-        $this->validasiLokasiKantor($user, $koordinat);
-
-        // 4. Validasi Jadwal Libur Rutin dan Agenda Toko
+        // 2. Validasi Jadwal Libur Rutin dan Agenda Toko
         $this->validasiBukanHariLibur($user, $hariIni);
 
         // 5. Decode dan Simpan Foto Fisik Presensi Kamera ke Storage
@@ -117,6 +78,66 @@ class BiometricFaceVerificationService
              sin($dLon / 2) * sin($dLon / 2);
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
         return $earthRadius * $c;
+    }
+
+    /**
+     * Verifikasi biometrik vektor wajah terhadap master acuan profil karyawan dan validasi GPS kantor.
+     * Digunakan bersama baik untuk Presensi Reguler Shift maupun Presensi Lembur agar akurasi 100% konsisten.
+     *
+     * @param User $user
+     * @param string $koordinat
+     * @param string|null $liveDescriptorJson
+     * @return array
+     * @throws ValidationException
+     */
+    public function verifikasiBiometrikDanLokasi(User $user, string $koordinat, ?string $liveDescriptorJson): array
+    {
+        // 1. Validasi Keberadaan Data Biometrik Master Karyawan
+        $profile = $user->profile;
+        if (!$profile || !$profile->foto_wajah_acuan) {
+            throw ValidationException::withMessages([
+                'biometrik' => 'Data biometrik wajah belum terdaftar. Silakan lakukan perekaman wajah pada menu Profil Karyawan terlebih dahulu.',
+            ]);
+        }
+
+        if (empty($profile->face_descriptor)) {
+            throw ValidationException::withMessages([
+                'biometrik' => 'Data vektor biometrik acuan belum lengkap. Silakan rekam ulang wajah pada menu Profil Karyawan.',
+            ]);
+        }
+
+        // 2. Evaluasi Kecocokan Biometrik Vektor Wajah Secara Ketat
+        if (empty($liveDescriptorJson)) {
+            throw ValidationException::withMessages([
+                'biometrik' => 'Biometrik wajah tidak terdeteksi pada kamera saat presensi. Pastikan seluruh wajah Anda menghadap lurus ke kamera.',
+            ]);
+        }
+
+        $masterVector = json_decode($profile->face_descriptor, true);
+        $liveVector = json_decode($liveDescriptorJson, true);
+
+        if (!is_array($masterVector) || !is_array($liveVector) || count($masterVector) !== 128 || count($liveVector) !== 128) {
+            throw ValidationException::withMessages([
+                'biometrik' => 'Format data biometrik tidak valid. Silakan ulangi pemindaian kamera.',
+            ]);
+        }
+
+        $distance = $this->calculateEuclideanDistance($masterVector, $liveVector);
+
+        // Jika jarak Euclidean melebihi threshold 0.48, tolak presensi
+        if ($distance > self::FACE_DISTANCE_THRESHOLD) {
+            throw ValidationException::withMessages([
+                'biometrik' => 'Verifikasi biometrik gagal: Wajah tidak sesuai dengan data acuan terdaftar (Tingkat kemiripan di bawah standar ketat Lazatto).',
+            ]);
+        }
+
+        // 3. Validasi Lokasi Koordinat GPS Terhadap Radius Kantor Cabang
+        $this->validasiLokasiKantor($user, $koordinat);
+
+        return [
+            'distance' => round($distance, 4),
+            'match' => true,
+        ];
     }
 
     /**
@@ -367,5 +388,130 @@ class BiometricFaceVerificationService
         }
 
         return $deletedCount;
+    }
+
+    /**
+     * Memproses verifikasi biometrik wajah dan GPS untuk presensi lembur (masuk / pulang).
+     *
+     * @param User $user
+     * @param \App\Models\Lembur $lembur
+     * @param string $fotoBase64
+     * @param string $koordinat
+     * @param string|null $liveDescriptorJson
+     * @return array
+     * @throws ValidationException
+     */
+    public function prosesPresensiLembur(
+        User $user, 
+        \App\Models\Lembur $lembur, 
+        string $fotoBase64, 
+        string $koordinat, 
+        ?string $liveDescriptorJson = null
+    ): array {
+        if ($lembur->user_id !== $user->id) {
+            throw ValidationException::withMessages([
+                'lembur' => 'Data pengajuan lembur ini bukan milik akun Anda.',
+            ]);
+        }
+
+        if ($lembur->status_pengajuan !== 'Disetujui') {
+            throw ValidationException::withMessages([
+                'lembur' => 'Pengajuan lembur ini belum disetujui oleh atasan/admin.',
+            ]);
+        }
+
+        if ($lembur->foto_mulai && $lembur->foto_selesai) {
+            throw ValidationException::withMessages([
+                'lembur' => 'Sesi lembur ini sudah selesai dan presensi masuk maupun pulang telah tercatat lengkap.',
+            ]);
+        }
+
+        // 1. Verifikasi Biometrik Wajah dan Lokasi Kantor secara Terpusat (Standar Ketat 0.48)
+        $this->verifikasiBiometrikDanLokasi($user, $koordinat, $liveDescriptorJson);
+
+        // 4. Decode dan Simpan Foto Kamera ke Disk Storage
+        if (!str_contains($fotoBase64, 'base64,')) {
+            throw ValidationException::withMessages([
+                'foto' => 'Format foto kamera tidak valid. Silakan ulangi pengambilan foto wajah.',
+            ]);
+        }
+
+        $imageParts = explode(";base64,", $fotoBase64);
+        $imageTypeAux = explode("image/", $imageParts[0]);
+        $imageType = $imageTypeAux[1] ?? 'jpg';
+        if ($imageType === 'jpeg') {
+            $imageType = 'jpg';
+        }
+        $imageBase64 = base64_decode($imageParts[1]);
+
+        $isPulang = !empty($lembur->foto_mulai);
+        $tipeAbsen = $isPulang ? 'selesai' : 'mulai';
+        $nik = $user->profile?->nik ?? $user->id;
+        $fileName = 'lembur_' . $nik . '_' . time() . '_' . $tipeAbsen . '.' . $imageType;
+        $savedPath = 'lembur/' . $fileName;
+
+        Storage::disk('public')->put($savedPath, $imageBase64);
+
+        $jamSekarang = Carbon::now()->format('H:i');
+        $hariIni = Carbon::today()->toDateString();
+
+        if (!$isPulang) {
+            // Validasi 1: Tanggal Pelaksanaan Lembur
+            if ($hariIni < $lembur->tanggal) {
+                $tglFormatted = Carbon::parse($lembur->tanggal)->translatedFormat('d F Y');
+                throw ValidationException::withMessages([
+                    'jadwal' => "Presensi masuk lembur belum dibuka. Sesi lembur Anda dijadwalkan pada tanggal {$tglFormatted}.",
+                ]);
+            }
+
+            // Validasi 2: Jam Mulai Lembur (Wajib tepat atau setelah jam mulai jadwal pengajuan, misal 10:00 wajib >= 10:00)
+            if ($hariIni === $lembur->tanggal && $lembur->jam_mulai_aktual) {
+                $jamMulaiRencana = substr($lembur->jam_mulai_aktual, 0, 5);
+                if ($jamSekarang < $jamMulaiRencana) {
+                    throw ValidationException::withMessages([
+                        'jadwal' => "Presensi masuk lembur belum dapat dilakukan. Anda wajib melakukan presensi masuk mulai pukul {$jamMulaiRencana} WIB atau setelahnya (saat ini masih pukul {$jamSekarang} WIB).",
+                    ]);
+                }
+            }
+
+            // Presensi Masuk Lembur
+            $lembur->update([
+                'jam_mulai_aktual' => $jamSekarang,
+                'foto_mulai' => $savedPath,
+                'koordinat_mulai' => $koordinat,
+            ]);
+
+            return [
+                'status' => 200,
+                'tipe' => 'mulai',
+                'jam' => $jamSekarang,
+                'message' => "Presensi masuk lembur berhasil dicatat pada {$jamSekarang} WIB. Selamat bekerja!",
+            ];
+        } else {
+            // Presensi Pulang Lembur
+            $jamMulai = Carbon::parse($lembur->tanggal . ' ' . $lembur->jam_mulai_aktual);
+            $jamSelesai = Carbon::now();
+            if ($jamSelesai->lessThan($jamMulai)) {
+                $jamSelesai->addDay();
+            }
+            $durasiMenit = max(0, (int) $jamMulai->diffInMinutes($jamSelesai));
+            $durasiJam = round($durasiMenit / 60, 1);
+
+            $lembur->update([
+                'jam_selesai_aktual' => $jamSekarang,
+                'foto_selesai' => $savedPath,
+                'koordinat_selesai' => $koordinat,
+                'durasi_menit' => $durasiMenit,
+            ]);
+
+            return [
+                'status' => 200,
+                'tipe' => 'selesai',
+                'jam' => $jamSekarang,
+                'durasi_menit' => $durasiMenit,
+                'durasi_jam' => $durasiJam,
+                'message' => "Presensi pulang lembur berhasil dicatat pada {$jamSekarang} WIB. Total durasi: {$durasiJam} Jam ({$durasiMenit} Menit). Terima kasih!",
+            ];
+        }
     }
 }

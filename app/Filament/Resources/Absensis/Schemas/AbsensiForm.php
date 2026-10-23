@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Absensis\Schemas;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\TimePicker;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,23 +32,23 @@ class AbsensiForm
 
                 Grid::make(2)
                     ->schema([
-                        TextInput::make('jam_masuk')
+                        TimePicker::make('jam_masuk')
                             ->label('Jam Masuk')
-                            ->placeholder('08:00')
-                            ->mask('99:99')
                             ->prefixIcon('heroicon-o-clock')
+                            ->native(false)
+                            ->seconds(false)
+                            ->format('H:i')
+                            ->displayFormat('H:i')
                             ->formatStateUsing(fn ($state) => $state ? substr($state, 0, 5) : null)
-                            ->dehydrateStateUsing(fn ($state) => $state ? substr($state, 0, 5) : null)
-                            ->regex('/^([01][0-9]|2[0-3]):[0-5][0-9]$/')
                             ->nullable(),
-                        TextInput::make('jam_pulang')
+                        TimePicker::make('jam_pulang')
                             ->label('Jam Pulang')
-                            ->placeholder('16:00')
-                            ->mask('99:99')
                             ->prefixIcon('heroicon-o-clock')
+                            ->native(false)
+                            ->seconds(false)
+                            ->format('H:i')
+                            ->displayFormat('H:i')
                             ->formatStateUsing(fn ($state) => $state ? substr($state, 0, 5) : null)
-                            ->dehydrateStateUsing(fn ($state) => $state ? substr($state, 0, 5) : null)
-                            ->regex('/^([01][0-9]|2[0-3]):[0-5][0-9]$/')
                             ->nullable(),
                     ]),
 

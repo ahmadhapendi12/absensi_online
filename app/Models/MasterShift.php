@@ -22,11 +22,11 @@ class MasterShift extends Model
     protected static function booted(): void
     {
         static::saving(function ($shift) {
-            // Otomatis deteksi shift lintas hari jika jam pulang lebih kecil dari jam masuk
+            // Otomatis deteksi shift lintas hari jika jam pulang lebih kecil dari jam masuk (melewati 00:00)
             if ($shift->jam_masuk && $shift->jam_pulang) {
-                if ($shift->jam_pulang < $shift->jam_masuk) {
-                    $shift->lintas_hari = true;
-                }
+                $masuk = substr($shift->jam_masuk, 0, 5);
+                $pulang = substr($shift->jam_pulang, 0, 5);
+                $shift->lintas_hari = ($pulang < $masuk);
             }
         });
     }

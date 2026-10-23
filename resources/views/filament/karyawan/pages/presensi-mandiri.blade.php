@@ -403,6 +403,31 @@
                 @endif
             </div>
 
+            @if(isset($lemburHariIni) && $lemburHariIni)
+                <div class="presensi-card" style="border-left: 4px solid #f59e0b; background: rgba(245, 158, 11, 0.06); padding: 1.25rem;">
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem;">
+                        <div>
+                            <span style="display: inline-block; font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #d97706; margin-bottom: 0.25rem;">Penugasan Lembur Hari Ini</span>
+                            <h4 style="font-size: 0.9375rem; font-weight: 700; margin: 0 0 0.25rem 0;">{{ $lemburHariIni->alasan_lembur }}</h4>
+                            <p style="font-size: 0.8125rem; opacity: 0.8; margin: 0;">
+                                @if(!$lemburHariIni->foto_mulai)
+                                    Status: Siap Mulai. Silakan ambil presensi masuk lembur.
+                                @elseif(!$lemburHariIni->foto_selesai)
+                                    Status: Sedang Lembur sejak {{ $lemburHariIni->jam_mulai_aktual }} WIB.
+                                @else
+                                    Status: Selesai ({{ round($lemburHariIni->durasi_menit / 60, 1) }} Jam).
+                                @endif
+                            </p>
+                        </div>
+                        @if(!$lemburHariIni->foto_mulai || !$lemburHariIni->foto_selesai)
+                            <a href="{{ url('/karyawan/lembur-presensi?id=' . $lemburHariIni->id) }}" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.5rem 0.875rem; border-radius: 0.5rem; font-size: 0.8125rem; font-weight: 700; background: #f59e0b; color: white; text-decoration: none; flex-shrink: 0; box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);">
+                                📷 Kamera Lembur →
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
         </div>
 
     </div>

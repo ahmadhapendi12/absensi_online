@@ -4,6 +4,7 @@ namespace App\Filament\Resources\MasterShifts\Schemas;
 
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -26,46 +27,42 @@ class MasterShiftForm
 
                         Grid::make(2)
                             ->schema([
-                                TextInput::make('jam_masuk')
+                                TimePicker::make('jam_masuk')
                                     ->label('Jam Masuk Kerja')
-                                    ->placeholder('08:00')
-                                    ->mask('99:99')
                                     ->prefixIcon('heroicon-o-clock')
-                                    ->formatStateUsing(fn ($state) => $state ? substr($state, 0, 5) : null)
-                                    ->dehydrateStateUsing(fn ($state) => $state ? substr($state, 0, 5) : null)
-                                    ->regex('/^([01][0-9]|2[0-3]):[0-5][0-9]$/')
-                                    ->validationMessages([
-                                        'regex' => 'Format jam harus 24 jam (00:00 - 23:59).',
-                                    ])
-                                    ->live(onBlur: true)
+                                    ->native(false)
+                                    ->seconds(false)
+                                    ->format('H:i')
+                                    ->displayFormat('H:i')
+                                    ->default('08:00')
+                                    ->formatStateUsing(fn ($state) => $state ? substr($state, 0, 5) : '08:00')
+                                    ->live()
                                     ->afterStateUpdated(function ($state, callable $get, callable $set) {
                                         $pulang = $get('jam_pulang');
-                                        if ($state && $pulang && strlen($state) === 5 && strlen($pulang) === 5) {
-                                            if ($pulang < $state) {
-                                                $set('lintas_hari', true);
-                                            }
+                                        if ($state && $pulang) {
+                                            $masukClean = substr($state, 0, 5);
+                                            $pulangClean = substr($pulang, 0, 5);
+                                            $set('lintas_hari', $pulangClean < $masukClean);
                                         }
                                     })
                                     ->required(),
 
-                                TextInput::make('jam_pulang')
+                                TimePicker::make('jam_pulang')
                                     ->label('Jam Pulang Kerja')
-                                    ->placeholder('16:00')
-                                    ->mask('99:99')
                                     ->prefixIcon('heroicon-o-clock')
-                                    ->formatStateUsing(fn ($state) => $state ? substr($state, 0, 5) : null)
-                                    ->dehydrateStateUsing(fn ($state) => $state ? substr($state, 0, 5) : null)
-                                    ->regex('/^([01][0-9]|2[0-3]):[0-5][0-9]$/')
-                                    ->validationMessages([
-                                        'regex' => 'Format jam harus 24 jam (00:00 - 23:59).',
-                                    ])
-                                    ->live(onBlur: true)
+                                    ->native(false)
+                                    ->seconds(false)
+                                    ->format('H:i')
+                                    ->displayFormat('H:i')
+                                    ->default('16:00')
+                                    ->formatStateUsing(fn ($state) => $state ? substr($state, 0, 5) : '16:00')
+                                    ->live()
                                     ->afterStateUpdated(function ($state, callable $get, callable $set) {
                                         $masuk = $get('jam_masuk');
-                                        if ($state && $masuk && strlen($masuk) === 5 && strlen($state) === 5) {
-                                            if ($state < $masuk) {
-                                                $set('lintas_hari', true);
-                                            }
+                                        if ($masuk && $state) {
+                                            $masukClean = substr($masuk, 0, 5);
+                                            $pulangClean = substr($state, 0, 5);
+                                            $set('lintas_hari', $pulangClean < $masukClean);
                                         }
                                     })
                                     ->required(),
@@ -132,7 +129,8 @@ class MasterShiftForm
 
                         Toggle::make('lintas_hari')
                             ->label('Shift Lintas Hari (Melewati Tengah Malam)')
-                            ->helperText('Aktifkan jika shift berakhir di keesokan harinya (misal: 22:00 - 06:00 WIB).')
+                            ->helperText('Otomatis aktif jika jam pulang lebih kecil dari jam masuk (melewati 00:00).')
+                            ->live()
                             ->default(false),
                     ]),
             ]);

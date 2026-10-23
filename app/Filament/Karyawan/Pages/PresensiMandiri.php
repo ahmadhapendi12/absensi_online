@@ -70,6 +70,11 @@ class PresensiMandiri extends Page
             ->where('tanggal', $hariIni)
             ->first();
 
+        $lemburHariIni = \App\Models\Lembur::where('user_id', $user->id)
+            ->where('tanggal', $hariIni)
+            ->where('status_pengajuan', 'Disetujui')
+            ->first();
+
         return [
             'user' => $user,
             'jadwal' => $jadwal,
@@ -80,6 +85,7 @@ class PresensiMandiri extends Page
             'tipeLibur' => $tipeLibur,
             'agendaToko' => $agendaToko,
             'absensi' => $absensiHariIni,
+            'lemburHariIni' => $lemburHariIni,
         ];
     }
 

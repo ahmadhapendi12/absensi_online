@@ -6,9 +6,6 @@ use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -119,92 +116,21 @@ class LemburKaryawansTable
                     ]),
             ])
             ->recordActions([
-                // AKSI 1: FOTO MASUK LEMBUR (Setelah di-ACC Admin)
+                // AKSI 1: PRESENSI MASUK LEMBUR (Kamera & GPS Biometrik)
                 Action::make('mulaiLembur')
-                    ->label('Foto Masuk Lembur')
+                    ->label('Presensi Masuk Lembur')
                     ->icon('heroicon-o-camera')
                     ->color('warning')
                     ->visible(fn ($record) => $record->status_pengajuan === 'Disetujui' && empty($record->foto_mulai))
-                    ->modalHeading('Presensi Masuk Lembur')
-                    ->modalDescription('Unggah foto selfie / bukti kehadiran di lokasi saat memulai jam lembur.')
-                    ->modalSubmitActionLabel('Simpan Masuk Lembur')
-                    ->form([
-                        TextInput::make('jam_mulai_aktual')
-                            ->label('Jam Mulai Lembur')
-                            ->placeholder('17:00')
-                            ->mask('99:99')
-                            ->prefixIcon('heroicon-o-clock')
-                            ->default(now()->format('H:i'))
-                            ->regex('/^([01][0-9]|2[0-3]):[0-5][0-9]$/')
-                            ->required(),
-                        FileUpload::make('foto_mulai')
-                            ->label('Foto Bukti Masuk Lembur')
-                            ->image()
-                            ->directory('lembur')
-                            ->disk('public')
-                            ->required()
-                            ->helperText('Ambil foto selfie di area kerja atau foto pekerjaan awal.'),
-                    ])
-                    ->action(function ($record, array $data) {
-                        $record->update([
-                            'jam_mulai_aktual' => $data['jam_mulai_aktual'],
-                            'foto_mulai' => $data['foto_mulai'],
-                        ]);
+                    ->url(fn ($record) => url('/karyawan/lembur-presensi?id=' . $record->id)),
 
-                        Notification::make()
-                            ->title('Presensi Masuk Lembur Tercatat')
-                            ->body('Selamat menjalankan lembur. Jangan lupa foto pulang setelah selesai.')
-                            ->success()
-                            ->send();
-                    }),
-
-                // AKSI 2: FOTO PULANG LEMBUR (Setelah Foto Masuk Selesai)
+                // AKSI 2: PRESENSI PULANG LEMBUR (Kamera & GPS Biometrik)
                 Action::make('selesaiLembur')
-                    ->label('Foto Pulang Lembur')
-                    ->icon('heroicon-o-check-circle')
+                    ->label('Presensi Pulang Lembur')
+                    ->icon('heroicon-o-camera')
                     ->color('success')
                     ->visible(fn ($record) => $record->status_pengajuan === 'Disetujui' && ! empty($record->foto_mulai) && empty($record->foto_selesai))
-                    ->modalHeading('Presensi Selesai Lembur')
-                    ->modalDescription('Unggah foto selfie / bukti hasil kerja selesai lembur untuk mengakhiri sesi.')
-                    ->modalSubmitActionLabel('Selesaikan Lembur')
-                    ->form([
-                        TextInput::make('jam_selesai_aktual')
-                            ->label('Jam Selesai Lembur')
-                            ->placeholder('19:00')
-                            ->mask('99:99')
-                            ->prefixIcon('heroicon-o-clock')
-                            ->default(now()->format('H:i'))
-                            ->regex('/^([01][0-9]|2[0-3]):[0-5][0-9]$/')
-                            ->required(),
-                        FileUpload::make('foto_selesai')
-                            ->label('Foto Bukti Selesai Lembur')
-                            ->image()
-                            ->directory('lembur')
-                            ->disk('public')
-                            ->required()
-                            ->helperText('Ambil foto selfie closing atau hasil pekerjaan lembur.'),
-                    ])
-                    ->action(function ($record, array $data) {
-                        $jamMulai = $record->jam_mulai_aktual ? Carbon::parse($record->jam_mulai_aktual) : Carbon::parse($record->tanggal . ' 17:00');
-                        $jamSelesai = Carbon::parse($data['jam_selesai_aktual']);
-                        if ($jamSelesai->lessThan($jamMulai)) {
-                            $jamSelesai->addDay();
-                        }
-                        $durasiMenit = (int) $jamMulai->diffInMinutes($jamSelesai);
-
-                        $record->update([
-                            'jam_selesai_aktual' => $data['jam_selesai_aktual'],
-                            'foto_selesai' => $data['foto_selesai'],
-                            'durasi_menit' => $durasiMenit,
-                        ]);
-
-                        $durasiJam = round($durasiMenit / 60, 1);
-                        Notification::make()
-                            ->title('Lembur Berhasil Diselesaikan')
-                            ->body("Total durasi lembur: {$durasiJam} Jam ({$durasiMenit} Menit). Terima kasih!")
-                            ->success()
-                            ->send();
-                    }),
+                    ->url(fn ($record) => url('/karyawan/lembur-presensi?id=' . $record->id)),
 
                 ViewAction::make()
                     ->iconButton()

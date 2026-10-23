@@ -53,4 +53,45 @@ Route::middleware(['auth'])->group(function () {
         }
     })->name('karyawan.presensi.store');
 
+    // Endpoint Verifikasi Biometrik Wajah & Presensi Masuk / Pulang Lembur
+    Route::post('/karyawan/lembur/presensi', function (\Illuminate\Http\Request $request, \App\Services\BiometricFaceVerificationService $service) {
+        try {
+            $user = \Illuminate\Support\Facades\Auth::user();
+            $lemburId = $request->input('lembur_id');
+
+            if (!$lemburId) {
+                return response()->json(['message' => 'ID Pengajuan lembur tidak ditemukan.'], 422);
+            }
+
+            $lembur = \App\Models\Lembur::where('id', $lemburId)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if (!$lembur) {
+                return response()->json(['message' => 'Data pengajuan lembur tidak ditemukan.'], 404);
+            }
+
+            $fotoBase64 = $request->input('foto_base64');
+            $koordinat = $request->input('koordinat') ?? '';
+            $liveDescriptor = $request->input('face_descriptor');
+
+            if (!$fotoBase64) {
+                return response()->json(['message' => 'Foto wajah dari kamera tidak terkirim. Pastikan kamera menyala.'], 422);
+            }
+
+            $result = $service->prosesPresensiLembur($user, $lembur, $fotoBase64, $koordinat, $liveDescriptor);
+            return response()->json($result, 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = $e->validator->errors()->all();
+            return response()->json(['message' => implode(' ', $errors)], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    })->name('karyawan.lembur.presensi.store');
+
+    // Shortcut Redirect untuk Lembur Karyawan (Mencegah 404)
+    Route::get('/karyawan/lemburs', function () {
+        return redirect()->to(\App\Filament\Karyawan\Resources\Lemburs\LemburKaryawanResource::getUrl('index', panel: 'karyawan'));
+    });
+
 });
