@@ -41,7 +41,7 @@ class MasterShiftForm
                                             $set('lintas_hari', true);
                                         }
                                     })
-                                    ->helperText('Contoh: 08:00, 13:00, 21:00')
+                                    ->helperText('Gunakan format 24 jam. Contoh: 08:00 (pagi), 14:00 (siang), 21:00 (malam).')
                                     ->required(),
                                 TimePicker::make('jam_pulang')
                                     ->label('Jam Pulang Kerja (Format 24 Jam)')
@@ -57,7 +57,7 @@ class MasterShiftForm
                                             $set('lintas_hari', true);
                                         }
                                     })
-                                    ->helperText('Contoh: 16:00, 22:00, atau 06:00 (lintas hari)')
+                                    ->helperText('Perhatian: Jam 1 siang adalah 13:00. Jika diisi 01:00, sistem membacanya jam 1 subuh melewati jam 00:00 (lintas hari).')
                                     ->required(),
                             ]),
                     ]),
