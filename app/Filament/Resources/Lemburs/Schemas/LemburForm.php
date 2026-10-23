@@ -8,7 +8,6 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\TimePicker;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
@@ -69,46 +68,48 @@ class LemburForm
 
                 Grid::make(2)
                     ->schema([
-                        TimePicker::make('jam_mulai_aktual')
-                            ->label('Jam Mulai Lembur (Format 24 Jam)')
+                        TextInput::make('jam_mulai_aktual')
+                            ->label('Jam Mulai Lembur')
+                            ->placeholder('17:00')
+                            ->mask('99:99')
                             ->prefixIcon('heroicon-o-clock')
-                            ->native(false)
-                            ->format('H:i')
-                            ->displayFormat('H:i')
-                            ->seconds(false)
                             ->default('17:00')
-                            ->live()
+                            ->formatStateUsing(fn ($state) => $state ? substr($state, 0, 5) : null)
+                            ->dehydrateStateUsing(fn ($state) => $state ? substr($state, 0, 5) : null)
+                            ->regex('/^([01][0-9]|2[0-3]):[0-5][0-9]$/')
+                            ->live(onBlur: true)
                             ->afterStateUpdated(function ($state, callable $get, callable $set) {
                                 $selesai = $get('jam_selesai_aktual');
-                                if ($state && $selesai) {
+                                if ($state && $selesai && strlen($state) === 5 && strlen($selesai) === 5) {
                                     $start = \Carbon\Carbon::parse($state);
                                     $end = \Carbon\Carbon::parse($selesai);
                                     if ($end->lessThan($start)) {
                                         $end->addDay();
                                     }
-                                    $set('durasi_menit', $start->diffInMinutes($end));
+                                    $set('durasi_menit', (int) $start->diffInMinutes($end));
                                 }
                             })
                             ->required(),
 
-                        TimePicker::make('jam_selesai_aktual')
-                            ->label('Jam Selesai Lembur (Format 24 Jam)')
+                        TextInput::make('jam_selesai_aktual')
+                            ->label('Jam Selesai Lembur')
+                            ->placeholder('19:00')
+                            ->mask('99:99')
                             ->prefixIcon('heroicon-o-clock')
-                            ->native(false)
-                            ->format('H:i')
-                            ->displayFormat('H:i')
-                            ->seconds(false)
                             ->default('19:00')
-                            ->live()
+                            ->formatStateUsing(fn ($state) => $state ? substr($state, 0, 5) : null)
+                            ->dehydrateStateUsing(fn ($state) => $state ? substr($state, 0, 5) : null)
+                            ->regex('/^([01][0-9]|2[0-3]):[0-5][0-9]$/')
+                            ->live(onBlur: true)
                             ->afterStateUpdated(function ($state, callable $get, callable $set) {
                                 $mulai = $get('jam_mulai_aktual');
-                                if ($mulai && $state) {
+                                if ($mulai && $state && strlen($mulai) === 5 && strlen($state) === 5) {
                                     $start = \Carbon\Carbon::parse($mulai);
                                     $end = \Carbon\Carbon::parse($state);
                                     if ($end->lessThan($start)) {
                                         $end->addDay();
                                     }
-                                    $set('durasi_menit', $start->diffInMinutes($end));
+                                    $set('durasi_menit', (int) $start->diffInMinutes($end));
                                 }
                             })
                             ->required(),

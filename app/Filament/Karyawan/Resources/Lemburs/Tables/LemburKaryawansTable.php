@@ -7,7 +7,7 @@ use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\TimePicker;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -129,14 +129,13 @@ class LemburKaryawansTable
                     ->modalDescription('Unggah foto selfie / bukti kehadiran di lokasi saat memulai jam lembur.')
                     ->modalSubmitActionLabel('Simpan Masuk Lembur')
                     ->form([
-                        TimePicker::make('jam_mulai_aktual')
-                            ->label('Jam Mulai Lembur (Format 24 Jam)')
+                        TextInput::make('jam_mulai_aktual')
+                            ->label('Jam Mulai Lembur')
+                            ->placeholder('17:00')
+                            ->mask('99:99')
                             ->prefixIcon('heroicon-o-clock')
-                            ->native(false)
-                            ->format('H:i')
-                            ->displayFormat('H:i')
-                            ->seconds(false)
                             ->default(now()->format('H:i'))
+                            ->regex('/^([01][0-9]|2[0-3]):[0-5][0-9]$/')
                             ->required(),
                         FileUpload::make('foto_mulai')
                             ->label('Foto Bukti Masuk Lembur')
@@ -169,14 +168,13 @@ class LemburKaryawansTable
                     ->modalDescription('Unggah foto selfie / bukti hasil kerja selesai lembur untuk mengakhiri sesi.')
                     ->modalSubmitActionLabel('Selesaikan Lembur')
                     ->form([
-                        TimePicker::make('jam_selesai_aktual')
-                            ->label('Jam Selesai Lembur (Format 24 Jam)')
+                        TextInput::make('jam_selesai_aktual')
+                            ->label('Jam Selesai Lembur')
+                            ->placeholder('19:00')
+                            ->mask('99:99')
                             ->prefixIcon('heroicon-o-clock')
-                            ->native(false)
-                            ->format('H:i')
-                            ->displayFormat('H:i')
-                            ->seconds(false)
                             ->default(now()->format('H:i'))
+                            ->regex('/^([01][0-9]|2[0-3]):[0-5][0-9]$/')
                             ->required(),
                         FileUpload::make('foto_selesai')
                             ->label('Foto Bukti Selesai Lembur')
