@@ -46,13 +46,6 @@ class UsersTable
                     ->color('info')
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('jadwal.shift.nama_shift')
-                    ->label('Shift Kerja')
-                    ->badge()
-                    ->color('warning')
-                    ->placeholder('Belum Diatur')
-                    ->description(fn (User $record) => $record->jadwal?->shift ? \Carbon\Carbon::parse($record->jadwal->shift->jam_masuk)->format('H:i') . ' - ' . \Carbon\Carbon::parse($record->jadwal->shift->jam_pulang)->format('H:i') . ' WIB' : null)
-                    ->sortable(),
                 TextColumn::make('roles.name')
                     ->label('Role')
                     ->badge()
