@@ -35,12 +35,14 @@ class AbsensiForm
                         TimePicker::make('jam_masuk')
                             ->label('Jam Masuk (Format 24 Jam)')
                             ->prefixIcon('heroicon-o-clock')
+                            ->native(false)
                             ->format('H:i')
                             ->displayFormat('H:i')
                             ->seconds(false),
                         TimePicker::make('jam_pulang')
                             ->label('Jam Pulang (Format 24 Jam)')
                             ->prefixIcon('heroicon-o-clock')
+                            ->native(false)
                             ->format('H:i')
                             ->displayFormat('H:i')
                             ->seconds(false),
