@@ -9,7 +9,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Carbon\Carbon;
 
 class UserForm
 {
@@ -134,35 +133,6 @@ class UserForm
                         // =========================================================================================================
                         // [AKHIR KODE FITUR PRIVASI & ENKRIPSI KTP]
                         // =========================================================================================================
-                    ])
-                    ->columns(2),
-
-                Section::make('Penetapan Shift & Jadwal Kerja')
-                    ->description('Tentukan shift kerja aktif dan hari libur mingguan karyawan.')
-                    ->relationship('jadwal')
-                    ->schema([
-                        Select::make('shift_id')
-                            ->label('Shift Kerja')
-                            ->relationship('shift', 'nama_shift')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->nama_shift} (" . Carbon::parse($record->jam_masuk)->format('H:i') . ' - ' . Carbon::parse($record->jam_pulang)->format('H:i') . ' WIB)')
-                            ->searchable()
-                            ->preload()
-                            ->nullable()
-                            ->helperText('Pilih shift jam kerja untuk karyawan ini.'),
-                        Select::make('hari_libur_rutin')
-                            ->label('Hari Libur Rutin Mingguan (Off)')
-                            ->options([
-                                'senin' => 'Senin',
-                                'selasa' => 'Selasa',
-                                'rabu' => 'Rabu',
-                                'kamis' => 'Kamis',
-                                'jumat' => 'Jumat',
-                                'sabtu' => 'Sabtu',
-                                'minggu' => 'Minggu',
-                            ])
-                            ->default('senin')
-                            ->nullable()
-                            ->helperText('Jatah libur 1 hari per minggu.'),
                     ])
                     ->columns(2),
             ]);
