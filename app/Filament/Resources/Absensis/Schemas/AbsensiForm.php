@@ -60,10 +60,9 @@ class AbsensiForm
                                 'Hadir' => 'Hadir',
                                 'Terlambat' => 'Terlambat',
                                 'Izin' => 'Izin',
-                                'Sakit' => 'Sakit',
-                                'Cuti' => 'Cuti',
-                                'Alpha' => 'Alpha',
+                                'Libur' => 'Libur',
                             ])
+                            ->default('Libur')
                             ->required(),
                         TextInput::make('menit_terlambat')
                             ->label('Keterlambatan (Menit)')

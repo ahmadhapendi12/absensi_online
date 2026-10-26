@@ -145,6 +145,13 @@ class LemburForm
                     ->required()
                     ->columnSpanFull(),
 
+                Textarea::make('alasan_penolakan')
+                    ->label('Alasan Penolakan (Wajib Diisi Jika Ditolak)')
+                    ->placeholder('Tuliskan alasan penolakan lembur di sini...')
+                    ->rows(2)
+                    ->visible(fn ($get) => $get('status_pengajuan') === 'Ditolak')
+                    ->columnSpanFull(),
+
                 \Filament\Schemas\Components\Section::make('Dokumentasi Presensi Lembur (Masuk & Keluar)')
                     ->description('Foto bukti selfie kehadiran & waktu pelaksanaan lembur aktual di outlet.')
                     ->visible(fn ($record) => filled($record))

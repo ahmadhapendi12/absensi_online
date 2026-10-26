@@ -11,7 +11,7 @@ class JadwalKaryawan extends Model
     use HasUuids;
 
     protected $fillable = [
-        'user_id', 'shift_id', 'hari_libur_rutin'
+        'user_id', 'shift_id'
     ];
 
     protected static function booted(): void
@@ -25,49 +25,16 @@ class JadwalKaryawan extends Model
             RiwayatJadwalKaryawan::create([
                 'user_id' => $jadwal->user_id,
                 'shift_id' => $jadwal->shift_id,
-                'hari_libur_rutin' => $jadwal->hari_libur_rutin,
                 'berlaku_dari' => $startDate,
                 'berlaku_sampai' => null,
             ]);
         });
 
         static::updated(function (JadwalKaryawan $jadwal) {
-            $today = Carbon::today()->toDateString();
-            $yesterday = Carbon::yesterday()->toDateString();
-
-            // Jika shift kerja diubah, sinkronkan langsung ke semua riwayat jadwal karyawan
+            // Jika shift kerja diubah, sinkronkan ke riwayat jadwal karyawan aktif
             if ($jadwal->isDirty('shift_id')) {
                 RiwayatJadwalKaryawan::where('user_id', $jadwal->user_id)
                     ->update(['shift_id' => $jadwal->shift_id]);
-            }
-
-            // Jika hari libur rutin mingguan diubah, kunci periode lama dan buka periode baru
-            if ($jadwal->isDirty('hari_libur_rutin')) {
-                $activeHistory = RiwayatJadwalKaryawan::where('user_id', $jadwal->user_id)
-                    ->whereNull('berlaku_sampai')
-                    ->latest('berlaku_dari')
-                    ->first();
-
-                if ($activeHistory) {
-                    if ($activeHistory->berlaku_dari && $activeHistory->berlaku_dari->toDateString() >= $today) {
-                        $activeHistory->update([
-                            'hari_libur_rutin' => $jadwal->hari_libur_rutin,
-                        ]);
-                        return;
-                    }
-
-                    $activeHistory->update([
-                        'berlaku_sampai' => $yesterday,
-                    ]);
-                }
-
-                RiwayatJadwalKaryawan::create([
-                    'user_id' => $jadwal->user_id,
-                    'shift_id' => $jadwal->shift_id,
-                    'hari_libur_rutin' => $jadwal->hari_libur_rutin,
-                    'berlaku_dari' => $today,
-                    'berlaku_sampai' => null,
-                ]);
             }
         });
     }

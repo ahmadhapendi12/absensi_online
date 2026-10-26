@@ -133,6 +133,12 @@ class LemburKaryawansTable
                         'Ditolak' => 'danger',
                         default => 'warning',
                     })
+                    ->description(function ($record): ?string {
+                        if ($record->status_pengajuan === 'Ditolak' && $record->alasan_penolakan) {
+                            return 'Alasan: ' . $record->alasan_penolakan;
+                        }
+                        return null;
+                    })
                     ->visibleFrom('md'),
 
                 TextColumn::make('progres_lembur')

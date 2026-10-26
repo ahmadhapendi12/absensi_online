@@ -11,3 +11,6 @@ Artisan::command('inspire', function () {
 
 // Jadwal pembersihan otomatis berkas fisik foto presensi > 30 hari (1 bulan) setiap hari
 Schedule::command('absensi:clean-old-photos --days=30')->daily();
+
+// Jadwal otomatisasi pencatatan status Libur bagi karyawan yang tidak masuk setelah shift berakhir
+Schedule::command('absensi:sync-libur')->hourly();

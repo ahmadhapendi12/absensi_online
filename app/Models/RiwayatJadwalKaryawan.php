@@ -14,7 +14,6 @@ class RiwayatJadwalKaryawan extends Model
     protected $fillable = [
         'user_id',
         'shift_id',
-        'hari_libur_rutin',
         'berlaku_dari',
         'berlaku_sampai',
     ];

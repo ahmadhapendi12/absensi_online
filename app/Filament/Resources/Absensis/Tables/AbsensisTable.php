@@ -64,9 +64,8 @@ class AbsensisTable
                             'Hadir', 'Tepat Waktu' => 'success',
                             'Terlambat' => 'warning',
                             'Izin' => 'info',
-                            'Sakit' => 'danger',
-                            'Cuti' => 'primary',
-                            default => 'danger',
+                            'Libur' => 'secondary',
+                            default => 'secondary',
                         };
                     })
                     ->description(function ($record): ?string {
@@ -86,10 +85,19 @@ class AbsensisTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 ImageColumn::make('foto_masuk')
-                    ->label('Foto Selfie')
+                    ->label('Foto Masuk')
                     ->disk('public')
                     ->circular()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->size(40)
+                    ->placeholder('Tidak ada')
+                    ->toggleable(),
+                ImageColumn::make('foto_pulang')
+                    ->label('Foto Pulang')
+                    ->disk('public')
+                    ->circular()
+                    ->size(40)
+                    ->placeholder('Tidak ada')
+                    ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('status_masuk')
@@ -100,9 +108,7 @@ class AbsensisTable
                         'Hadir' => 'Hadir / Tepat Waktu',
                         'Terlambat' => 'Terlambat',
                         'Izin' => 'Izin',
-                        'Sakit' => 'Sakit',
-                        'Cuti' => 'Cuti',
-                        'Alpha' => 'Alpha',
+                        'Libur' => 'Libur',
                     ])
                     ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data) {
                         if (($data['value'] ?? null) === 'sedang_berlangsung') {

@@ -56,7 +56,7 @@ class RekapPresensiKaryawansTable
                 TextColumn::make('menit_terlambat')
                     ->label('Keterlambatan')
                     ->formatStateUsing(function ($state, $record) {
-                        if (in_array($record->status_masuk, ['Izin', 'Sakit', 'Cuti', 'Alpha']) || !$record->jam_masuk) {
+                        if (in_array($record->status_masuk, ['Izin', 'Libur']) || !$record->jam_masuk) {
                             return '-';
                         }
                         if (!$state || $state <= 0) {
@@ -66,7 +66,7 @@ class RekapPresensiKaryawansTable
                     })
                     ->badge()
                     ->color(function ($state, $record) {
-                        if (in_array($record->status_masuk, ['Izin', 'Sakit', 'Cuti', 'Alpha']) || !$record->jam_masuk) {
+                        if (in_array($record->status_masuk, ['Izin', 'Libur']) || !$record->jam_masuk) {
                             return 'gray';
                         }
                         return $state > 0 ? 'warning' : 'success';
@@ -78,16 +78,16 @@ class RekapPresensiKaryawansTable
                     ->label('Foto Masuk')
                     ->circular()
                     ->disk('public')
-                    ->placeholder('-')
-                    ->visibleFrom('md')
+                    ->placeholder('Tidak ada')
+                    ->size(40)
                     ->toggleable(),
 
                 ImageColumn::make('foto_pulang')
                     ->label('Foto Pulang')
                     ->circular()
                     ->disk('public')
-                    ->placeholder('-')
-                    ->visibleFrom('md')
+                    ->placeholder('Tidak ada')
+                    ->size(40)
                     ->toggleable(),
             ])
             ->actions([
@@ -108,9 +108,7 @@ class RekapPresensiKaryawansTable
                         'Hadir' => 'Hadir Tepat Waktu',
                         'Terlambat' => 'Terlambat',
                         'Izin' => 'Izin',
-                        'Sakit' => 'Sakit',
-                        'Cuti' => 'Cuti',
-                        'Alpha' => 'Alpha',
+                        'Libur' => 'Libur',
                     ]),
             ]);
     }

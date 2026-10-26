@@ -17,82 +17,76 @@ class JadwalKaryawanSeeder extends Seeder
         $siti = User::where('email', 'siti@gmail.com')->first();
         $tono = User::where('email', 'tono@gmail.com')->first(); 
 
-        // 2. Ambil data master shift (Shift 1, Shift 2, Shift 3)
-        $shift1 = MasterShift::where('nama_shift', 'Shift 1')->first();
-        $shift2 = MasterShift::where('nama_shift', 'Shift 2')->first();
-        $shift3 = MasterShift::where('nama_shift', 'Shift 3')->first();
+        // 2. Ambil data master shift sesuai cabang masing-masing karyawan
+        $shiftBudi = $budi ? (MasterShift::where('cabang_id', $budi->cabang_id)->where('nama_shift', 'Shift 1')->first() ?? MasterShift::where('nama_shift', 'Shift 1')->first()) : null;
+        $shiftSiti = $siti ? (MasterShift::where('cabang_id', $siti->cabang_id)->where('nama_shift', 'Shift 2')->first() ?? MasterShift::where('nama_shift', 'Shift 2')->first()) : null;
+        $shiftTono = $tono ? (MasterShift::where('cabang_id', $tono->cabang_id)->where('nama_shift', 'Shift 3')->first() ?? MasterShift::where('nama_shift', 'Shift 3')->first()) : null;
 
         // 3. Assign Jadwal Utama Karyawan tanpa men-trigger event
-        JadwalKaryawan::withoutEvents(function () use ($budi, $siti, $tono, $shift1, $shift2, $shift3) {
-            if ($budi && $shift1) {
+        JadwalKaryawan::withoutEvents(function () use ($budi, $siti, $tono, $shiftBudi, $shiftSiti, $shiftTono) {
+            if ($budi && $shiftBudi) {
                 JadwalKaryawan::updateOrCreate(
                     ['user_id' => $budi->id],
                     [
-                        'shift_id' => $shift1->id,
-                        'hari_libur_rutin' => 'senin',
+                        'shift_id' => $shiftBudi->id,
                     ]
                 );
             }
 
-            if ($siti && $shift2) {
+            if ($siti && $shiftSiti) {
                 JadwalKaryawan::updateOrCreate(
                     ['user_id' => $siti->id],
                     [
-                        'shift_id' => $shift2->id,
-                        'hari_libur_rutin' => 'minggu',
+                        'shift_id' => $shiftSiti->id,
                     ]
                 );
             }
 
-            if ($tono && $shift3) {
+            if ($tono && $shiftTono) {
                 JadwalKaryawan::updateOrCreate(
                     ['user_id' => $tono->id],
                     [
-                        'shift_id' => $shift3->id,
-                        'hari_libur_rutin' => 'selasa',
+                        'shift_id' => $shiftTono->id,
                     ]
                 );
             }
         });
 
         // 4. Assign Riwayat Jadwal Karyawan (Gunakan updateOrCreate agar tidak duplikat)
-        if ($budi && $shift1) {
+        if ($budi && $shiftBudi) {
             RiwayatJadwalKaryawan::updateOrCreate(
                 [
                     'user_id' => $budi->id,
                     'berlaku_dari' => '2026-10-01'
                 ],
                 [
-                    'shift_id' => $shift1->id,
-                    'hari_libur_rutin' => 'senin',
+                    'shift_id' => $shiftBudi->id,
                     'berlaku_sampai' => null,
                 ]
             );
         }
 
-        if ($siti && $shift2) {
+        if ($siti && $shiftSiti) {
             RiwayatJadwalKaryawan::updateOrCreate(
                 [
                     'user_id' => $siti->id,
                     'berlaku_dari' => '2026-10-01'
                 ],
                 [
-                    'shift_id' => $shift2->id,
-                    'hari_libur_rutin' => 'minggu',
+                    'shift_id' => $shiftSiti->id,
                     'berlaku_sampai' => null,
                 ]
             );
         }
 
-        if ($tono && $shift3) {
+        if ($tono && $shiftTono) {
             RiwayatJadwalKaryawan::updateOrCreate(
                 [
                     'user_id' => $tono->id,
                     'berlaku_dari' => '2026-10-01'
                 ],
                 [
-                    'shift_id' => $shift3->id,
-                    'hari_libur_rutin' => 'selasa',
+                    'shift_id' => $shiftTono->id,
                     'berlaku_sampai' => null,
                 ]
             );

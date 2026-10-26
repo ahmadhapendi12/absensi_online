@@ -91,6 +91,7 @@ class LaporanPresensiController extends Controller
         $totalIzin = $dataAbsensi->where('status_masuk', 'Izin')->count();
         $totalSakit = $dataAbsensi->where('status_masuk', 'Sakit')->count();
         $totalCuti = $dataAbsensi->where('status_masuk', 'Cuti')->count();
+        $totalLibur = $dataAbsensi->where('status_masuk', 'Libur')->count();
         $totalHadir = $totalTepatWaktu + $totalTerlambat;
         $totalMenitTerlambat = $dataAbsensi->sum('menit_terlambat');
         $persenKehadiran = $totalRecords > 0 ? round(($totalHadir / $totalRecords) * 100, 1) : 0;
@@ -103,6 +104,7 @@ class LaporanPresensiController extends Controller
             'izin' => $totalIzin,
             'sakit' => $totalSakit,
             'cuti' => $totalCuti,
+            'libur' => $totalLibur,
             'menit_terlambat' => $totalMenitTerlambat,
             'persen_kehadiran' => $persenKehadiran,
         ];

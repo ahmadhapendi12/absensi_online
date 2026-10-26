@@ -66,20 +66,21 @@ class LatestAbsensiWidget extends TableWidget
                     ->color(fn (?string $state): string => match ($state) {
                         'Tepat Waktu', 'Hadir' => 'success',
                         'Terlambat' => 'warning',
-                        'Sakit', 'Izin', 'Cuti' => 'info',
+                        'Izin' => 'info',
+                        'Libur' => 'gray',
                         default => 'gray',
                     }),
                 TextColumn::make('menit_terlambat')
                     ->label('Keterlambatan')
                     ->formatStateUsing(function ($state, $record) {
-                        if (in_array($record->status_masuk, ['Izin', 'Sakit', 'Cuti', 'Alpha']) || !$record->jam_masuk) {
+                        if (in_array($record->status_masuk, ['Izin', 'Libur']) || !$record->jam_masuk) {
                             return '-';
                         }
                         return $state > 0 ? "{$state} menit" : 'Tepat Waktu';
                     })
                     ->badge()
                     ->color(function ($state, $record) {
-                        if (in_array($record->status_masuk, ['Izin', 'Sakit', 'Cuti', 'Alpha']) || !$record->jam_masuk) {
+                        if (in_array($record->status_masuk, ['Izin', 'Libur']) || !$record->jam_masuk) {
                             return 'gray';
                         }
                         return $state > 0 ? 'danger' : 'success';

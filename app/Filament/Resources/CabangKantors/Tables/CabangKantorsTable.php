@@ -29,6 +29,10 @@ class CabangKantorsTable
                     ->suffix(' meter')
                     ->numeric()
                     ->sortable(),
+                \Filament\Tables\Columns\IconColumn::make('is_24_jam')
+                    ->label('Buka 24 Jam')
+                    ->boolean()
+                    ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

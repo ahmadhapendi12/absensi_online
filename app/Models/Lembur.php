@@ -13,7 +13,7 @@ class Lembur extends Model
         'user_id', 'tanggal', 'alasan_lembur', 'status_pengajuan',
         'disetujui_oleh', 'jam_mulai_aktual', 'jam_selesai_aktual',
         'foto_mulai', 'foto_selesai', 'koordinat_mulai', 'koordinat_selesai',
-        'durasi_menit'
+        'durasi_menit', 'alasan_penolakan'
     ];
 
     public function user()

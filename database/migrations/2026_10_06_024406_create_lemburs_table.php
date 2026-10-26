@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('alasan_lembur');
             $table->enum('status_pengajuan', ['Pending', 'Disetujui', 'Ditolak'])->default('Pending');
             $table->foreignUuid('disetujui_oleh')->nullable()->constrained('users')->nullOnDelete();
+            $table->text('alasan_penolakan')->nullable();
             $table->time('jam_mulai_aktual')->nullable();
             $table->time('jam_selesai_aktual')->nullable();
             $table->string('foto_mulai')->nullable();

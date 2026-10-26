@@ -17,11 +17,22 @@ class MasterShiftForm
         return $schema
             ->components([
                 Section::make('Informasi Utama Shift')
-                    ->description('Tentukan nama shift dan jam kerja reguler.')
+                    ->description('Tentukan nama shift, toko/cabang penempatan, dan jam kerja reguler.')
                     ->schema([
+                        Select::make('cabang_id')
+                            ->label('Cabang / Toko Penempatan')
+                            ->relationship('cabang', 'nama_cabang')
+                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->nama_cabang . ($record->is_24_jam ? ' [Buka 24 Jam]' : ' [Reguler]'))
+                            ->placeholder('Semua Cabang (Shift Berlaku Global)')
+                            ->helperText('Pilih cabang spesifik jika shift ini hanya berlaku di toko tertentu (misal: Toko 24 Jam). Kosongkan jika berlaku global.')
+                            ->searchable()
+                            ->preload()
+                            ->nullable()
+                            ->columnSpanFull(),
+
                         TextInput::make('nama_shift')
                             ->label('Nama Shift')
-                            ->placeholder('Contoh: Shift Pagi Kios')
+                            ->placeholder('Contoh: Shift Pagi (08:00 - 16:00)')
                             ->columnSpanFull()
                             ->required(),
 

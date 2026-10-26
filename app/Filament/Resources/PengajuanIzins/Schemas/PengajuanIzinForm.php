@@ -69,6 +69,13 @@ class PengajuanIzinForm
                     ->required()
                     ->columnSpanFull(),
 
+                Textarea::make('alasan_penolakan')
+                    ->label('Alasan Penolakan (Wajib Diisi Jika Ditolak)')
+                    ->placeholder('Tuliskan alasan penolakan izin di sini...')
+                    ->rows(2)
+                    ->visible(fn ($get) => $get('status') === 'Ditolak')
+                    ->columnSpanFull(),
+
                 FileUpload::make('file_bukti')
                     ->label('File Bukti / Surat Dokter (Opsional)')
                     ->directory('pengajuan_izin')

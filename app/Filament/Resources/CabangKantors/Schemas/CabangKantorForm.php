@@ -29,6 +29,10 @@ class CabangKantorForm
                     ->required()
                     ->numeric()
                     ->default(100),
+                \Filament\Forms\Components\Toggle::make('is_24_jam')
+                    ->label('Operasional Toko 24 Jam')
+                    ->helperText('Aktifkan jika toko/cabang ini beroperasi non-stop 24 jam dengan rotasi shift penuh.')
+                    ->default(false),
             ]);
     }
 }

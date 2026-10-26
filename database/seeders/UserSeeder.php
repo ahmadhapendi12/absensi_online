@@ -15,11 +15,11 @@ class UserSeeder extends Seeder
         // Sesuaikan nama cabang dengan yang ada di CabangKantorSeeder terbaru
         $cabangCijeruk = CabangKantor::where('nama_cabang', 'Lazatto Cijeruk Chicken And Burger')->first();
         $cabangCiruas = CabangKantor::where('nama_cabang', 'Lazatto Ciruas Chicken and Burger')->first();
-        $cabangTesting = CabangKantor::where('nama_cabang', 'Warung Mamah Nazwa (Titik Testing)')->first();
+        $cabangCikande = CabangKantor::where('nama_cabang', 'Lazatto Cikande Ambon Chicken and Burger')->first();
         
         $cabangCijerukId = $cabangCijeruk ? $cabangCijeruk->id : null;
         $cabangCiruasId = $cabangCiruas ? $cabangCiruas->id : $cabangCijerukId;
-        $cabangTestingId = $cabangTesting ? $cabangTesting->id : $cabangCijerukId;
+        $cabangCikandeId = $cabangCikande ? $cabangCikande->id : $cabangCijerukId;
 
         // 1. Superadmin
         $superadmin = User::firstOrCreate(
@@ -89,14 +89,14 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // 4. Karyawan 3 (Tono) - Ditempatkan di Titik Testing Rumah
+        // 4. Karyawan 3 (Tono) - Ditempatkan di Cikande Ambon (Shift 3 Malam)
         $karyawan3 = User::firstOrCreate(
             ['email' => 'tono@gmail.com'],
             [
                 'name'      => 'Tono Supriyanto',
                 'password'  => Hash::make('password123'),
                 'status'    => 'active',
-                'cabang_id' => $cabangTestingId, // Spesial buat testing dari rumah lo
+                'cabang_id' => $cabangCikandeId,
             ]
         );
         $karyawan3->syncRoles(['karyawan']);
@@ -108,7 +108,7 @@ class UserSeeder extends Seeder
                 'name'              => 'Tono Supriyanto',
                 'tanggal_bergabung' => '2026-10-01',
                 'telphone'          => '081555666777',
-                'alamat'            => 'Warung Mamah Nazwa',
+                'alamat'            => 'Kawasan Cikande Ambon',
             ]
         );
 

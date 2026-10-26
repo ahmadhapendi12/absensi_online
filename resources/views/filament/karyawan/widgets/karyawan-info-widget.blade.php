@@ -147,26 +147,41 @@
                     </div>
 
                     <!-- Shift Info Badge -->
-                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; font-size: 0.8125rem;">
+                    <div style="display: inline-flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; font-size: 0.8125rem;">
                         <span style="display: inline-block; width: 8px; height: 8px; border-radius: 9999px; background-color: #10b981;"></span>
-                        <span>Shift Hari Ini: <strong>{{ $shift?->nama_shift ?? 'Shift Standar' }}</strong></span>
+                        <span>Shift: <strong>{{ $shift?->nama_shift ?? 'Belum Dipilih' }}</strong></span>
                         @if($shift)
                             <span style="padding: 0.125rem 0.375rem; border-radius: 0.25rem; background: rgba(156, 163, 175, 0.15); font-weight: 600;">
                                 {{ \Carbon\Carbon::parse($shift->jam_masuk)->format('H:i') }} - {{ \Carbon\Carbon::parse($shift->jam_pulang)->format('H:i') }} WIB
                             </span>
                         @endif
+                        <a href="{{ url('/karyawan/pilih-shift') }}" style="font-size: 0.75rem; color: #f59e0b; text-decoration: underline; font-weight: 700; margin-left: 0.25rem;">
+                            (Pilih / Ganti Shift)
+                        </a>
                     </div>
                 </div>
             </div>
 
             <!-- Status Presensi & Action Callout -->
-            <div class="karyawan-status-box @if($absensi && !$absensi->jam_pulang) active-work @elseif($absensi && $absensi->jam_pulang) done-work @endif">
+            <div class="karyawan-status-box @if($absensi && $absensi->jam_masuk && !$absensi->jam_pulang) active-work @elseif($absensi && $absensi->jam_pulang) done-work @endif">
                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         @if(!$absensi)
                             <span style="display: inline-block; width: 10px; height: 10px; border-radius: 9999px; background-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);"></span>
                             <span style="font-size: 0.875rem; font-weight: 700; color: #b45309;">Belum Presensi Masuk</span>
-                        @elseif(!$absensi->jam_pulang)
+                        @elseif($absensi->status_masuk === 'Libur')
+                            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 9999px; background-color: #6b7280; box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.25);"></span>
+                            <div>
+                                <div style="font-size: 0.875rem; font-weight: 700; color: #4b5563;">Status: Libur</div>
+                                <div style="font-size: 0.75rem; opacity: 0.85;">Tidak bertugas / di luar jam operasional shift</div>
+                            </div>
+                        @elseif(in_array($absensi->status_masuk, ['Izin', 'Cuti', 'Sakit']))
+                            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 9999px; background-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);"></span>
+                            <div>
+                                <div style="font-size: 0.875rem; font-weight: 700; color: #1d4ed8;">Status: {{ $absensi->status_masuk }}</div>
+                                <div style="font-size: 0.75rem; opacity: 0.85;">Pengajuan izin telah disetujui</div>
+                            </div>
+                        @elseif($absensi->jam_masuk && !$absensi->jam_pulang)
                             <span style="display: inline-block; width: 10px; height: 10px; border-radius: 9999px; background-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);"></span>
                             <div>
                                 <div style="font-size: 0.875rem; font-weight: 700; color: #047857;">Sedang Bekerja</div>
@@ -194,7 +209,15 @@
                             <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                             Ambil Presensi Masuk
                         </a>
-                    @elseif(!$absensi->jam_pulang)
+                    @elseif($absensi->status_masuk === 'Libur' || in_array($absensi->status_masuk, ['Izin', 'Cuti', 'Sakit']))
+                        <a 
+                            href="{{ url('/karyawan/rekap-presensis/rekap-presensi-karyawans') }}" 
+                            style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.625rem 1rem; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 600; background-color: rgba(156, 163, 175, 0.2); color: inherit; text-decoration: none; transition: background 0.2s;"
+                        >
+                            <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Lihat Rekap Presensi
+                        </a>
+                    @elseif($absensi->jam_masuk && !$absensi->jam_pulang)
                         <a 
                             href="{{ url('/karyawan/presensi-mandiri') }}" 
                             style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.625rem 1rem; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700; background-color: #ef4444; color: #ffffff; text-decoration: none; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3); transition: background 0.2s;"

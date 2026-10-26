@@ -76,6 +76,14 @@ class MasterShiftsTable
                     ->badge()
                     ->color('danger'),
 
+                TextColumn::make('cabang.nama_cabang')
+                    ->label('Cabang / Toko')
+                    ->placeholder('Semua Cabang (Global)')
+                    ->badge()
+                    ->color(fn ($record) => $record->cabang?->is_24_jam ? 'warning' : 'info')
+                    ->formatStateUsing(fn ($record) => ($record->cabang?->nama_cabang ?? 'Semua Cabang') . ($record->cabang?->is_24_jam ? ' [24 Jam]' : ''))
+                    ->sortable(),
+
                 IconColumn::make('lintas_hari')
                     ->label('Lintas Hari')
                     ->boolean(),
@@ -89,7 +97,9 @@ class MasterShiftsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                \Filament\Tables\Filters\SelectFilter::make('cabang_id')
+                    ->label('Filter Cabang')
+                    ->relationship('cabang', 'nama_cabang'),
             ])
             ->recordActions([
                 ViewAction::make(),

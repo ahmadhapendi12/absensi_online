@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('file_bukti')->nullable();
             $table->enum('status', ['Pending', 'Disetujui', 'Ditolak'])->default('Pending');
             $table->foreignUuid('disetujui_oleh')->nullable()->constrained('users')->nullOnDelete();
+            $table->text('alasan_penolakan')->nullable();
             $table->timestamps();
         });
     }

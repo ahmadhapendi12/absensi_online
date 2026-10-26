@@ -21,7 +21,6 @@ class DashboardKaryawan extends BaseDashboard
         return [
             \App\Filament\Karyawan\Widgets\KaryawanInfoWidget::class,
             \App\Filament\Karyawan\Widgets\KaryawanStatistikWidget::class,
-            \App\Filament\Karyawan\Widgets\KaryawanKalenderKerjaWidget::class,
             \App\Filament\Karyawan\Widgets\KaryawanRecentAbsensiWidget::class,
         ];
     }

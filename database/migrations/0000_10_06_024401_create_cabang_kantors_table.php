@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-      Schema::create('cabang_kantors', function (Blueprint $table) {
-    $table->uuid('id')->primary();
-    $table->string('nama_cabang', 100);
-    $table->string('latitude', 50);
-    $table->string('longitude', 50);
-    $table->integer('radius_meter')->default(100);
-    $table->timestamps();
+        Schema::create('cabang_kantors', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('nama_cabang', 100);
+            $table->string('latitude', 50);
+            $table->string('longitude', 50);
+            $table->integer('radius_meter')->default(100);
+            $table->boolean('is_24_jam')->default(false);
+            $table->timestamps();
         });
     }
 

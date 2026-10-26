@@ -132,10 +132,15 @@
                         </div>
                     </div>
                     <div class="info-row">
-                        <span style="opacity: 0.65;">Hari Libur Rutin</span>
-                        <strong style="font-weight: 700; color: #10b981; text-transform: capitalize;">
-                            {{ $user->jadwal?->hari_libur_rutin ?? 'Minggu' }}
-                        </strong>
+                        <span style="opacity: 0.65;">Cabang Toko</span>
+                        <div style="text-align: right;">
+                            <strong style="font-weight: 700; color: #10b981;">
+                                {{ $user->cabang?->nama_cabang ?? 'Pusat' }}
+                            </strong>
+                            @if($user->cabang?->is_24_jam)
+                                <span style="display: block; font-size: 0.6875rem; color: #059669; font-weight: 700;">(Operasional 24 Jam)</span>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>

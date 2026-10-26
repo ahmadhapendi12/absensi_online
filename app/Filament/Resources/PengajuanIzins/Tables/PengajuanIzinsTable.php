@@ -119,16 +119,28 @@ class PengajuanIzinsTable
                 Action::make('reject')
                     ->label('Tolak')
                     ->color('danger')
-                    ->requiresConfirmation()
+                    ->icon('heroicon-o-x-circle')
+                    ->modalHeading('Tolak Pengajuan Izin')
+                    ->modalDescription('Masukkan alasan penolakan agar karyawan mengetahui kendala pengajuan ini.')
+                    ->modalSubmitActionLabel('Konfirmasi Penolakan')
+                    ->form([
+                        \Filament\Forms\Components\Textarea::make('alasan_penolakan')
+                            ->label('Alasan Penolakan')
+                            ->placeholder('Contoh: Kuota izin pada hari tersebut sudah penuh / Jadwal toko padat.')
+                            ->required()
+                            ->rows(3),
+                    ])
                     ->visible(fn ($record) => $record->status === 'Pending')
-                    ->action(function ($record) {
+                    ->action(function ($record, array $data) {
                         $record->update([
                             'status' => 'Ditolak',
                             'disetujui_oleh' => auth()->id(),
+                            'alasan_penolakan' => $data['alasan_penolakan'],
                         ]);
 
                         Notification::make()
-                            ->title('Pengajuan izin ditolak.')
+                            ->title('Pengajuan Izin Berhasil Ditolak')
+                            ->body('Alasan penolakan telah disimpan.')
                             ->danger()
                             ->send();
                     }),

@@ -104,9 +104,10 @@ class FilamentKaryawanPanelTest extends TestCase
 
         // 1x1 transparent png base64
         $fakeBase64 = 'data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+        $fakeDescriptor = json_encode(array_fill(0, 128, 0.05));
 
         \Livewire\Livewire::test(\App\Filament\Karyawan\Pages\ProfilKaryawan::class)
-            ->call('simpanFotoWajahMaster', $fakeBase64)
+            ->call('simpanFotoWajahMaster', $fakeBase64, $fakeDescriptor)
             ->assertHasNoErrors();
 
         $karyawan->refresh();

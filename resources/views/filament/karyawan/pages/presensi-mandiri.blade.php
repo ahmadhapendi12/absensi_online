@@ -173,31 +173,37 @@
         </div>
     @endif
 
+    @if(isset($agendaToko) && $agendaToko)
+        <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 0.875rem; padding: 1rem 1.25rem; display: flex; align-items: flex-start; gap: 0.875rem; margin-bottom: 1.5rem;">
+            <div style="width: 36px; height: 36px; border-radius: 9999px; background: rgba(59, 130, 246, 0.2); color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.125rem;">
+                ℹ️
+            </div>
+            <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <strong style="font-size: 0.9375rem; color: #1d4ed8;">Agenda Toko Hari Ini: {{ $agendaToko->nama_agenda }}</strong>
+                    <span style="font-size: 0.6875rem; padding: 0.125rem 0.5rem; border-radius: 9999px; background: rgba(59, 130, 246, 0.2); color: #1e40af; font-weight: 700;">
+                        {{ ucfirst(str_replace('_', ' ', $agendaToko->jenis)) }}
+                    </span>
+                </div>
+                <p style="font-size: 0.8125rem; color: #3b82f6; margin: 0.25rem 0 0 0;">
+                    {{ $agendaToko->keterangan ?? 'Kegiatan operasional toko tetap berjalan. Silakan lakukan presensi sesuai shift Anda.' }}
+                </p>
+            </div>
+        </div>
+    @endif
+
     <div class="presensi-container">
 
         <!-- KOLOM KIRI: KAMERA VIEWFINDER LIVE & AI BIOMETRIK -->
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-            @if($isHariLibur)
-                <div class="presensi-card" style="background: rgba(16, 185, 129, 0.06); border-color: rgba(16, 185, 129, 0.3); text-align: center; padding: 2.5rem 1.5rem;">
-                    <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 9999px; background: rgba(16, 185, 129, 0.15); color: #10b981; margin-bottom: 1rem;">
-                        <svg style="width: 32px; height: 32px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+            <div class="presensi-card" style="padding: 1.25rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.9375rem;">
+                        <svg style="width: 20px; height: 20px; color: #f59e0b;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                        <span>Kamera Presensi</span>
                     </div>
-                    <h2 style="font-size: 1.35rem; font-weight: 800; margin: 0 0 0.5rem 0;">Hari Ini Jadwal Libur</h2>
-                    <p style="font-size: 0.9375rem; color: #059669; margin: 0 0 0.5rem 0;">{{ $pesanLibur }}</p>
-                    <p style="font-size: 0.8125rem; opacity: 0.75; margin: 0 0 1.5rem 0;">Anda tidak perlu melakukan presensi masuk maupun pulang hari ini.</p>
-                    <a href="{{ url('/karyawan') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.25rem; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 700; background-color: #10b981; color: #ffffff; text-decoration: none;">
-                        Kembali ke Dashboard
-                    </a>
+                    <span id="camera-status-label" style="font-size: 0.75rem; opacity: 0.8; font-weight: 600;">Menghubungkan Kamera...</span>
                 </div>
-            @else
-                <div class="presensi-card" style="padding: 1.25rem;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                        <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.9375rem;">
-                            <svg style="width: 20px; height: 20px; color: #f59e0b;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
-                            <span>Kamera Presensi</span>
-                        </div>
-                        <span id="camera-status-label" style="font-size: 0.75rem; opacity: 0.8; font-weight: 600;">Menghubungkan Kamera...</span>
-                    </div>
 
                     <!-- Viewfinder Video Kamera Langsung & AI Landmark Oval -->
                     <div class="camera-viewport">
@@ -260,7 +266,19 @@
 
                     <!-- Tombol Aksi Presensi -->
                     <div style="margin-top: 1.25rem;">
-                        @if(!$absensi)
+                        @if($absensi && $absensi->status_masuk === 'Libur')
+                            <div style="padding: 1.125rem 1rem; border-radius: 0.75rem; text-align: center; font-weight: 700; font-size: 0.875rem; background: rgba(107, 114, 128, 0.1); border: 1.5px solid rgba(107, 114, 128, 0.35); color: #4b5563;">
+                                <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">☕</div>
+                                <div style="font-size: 0.9375rem; color: inherit;">Status Hari Ini: Libur</div>
+                                <div style="font-size: 0.75rem; font-weight: 500; opacity: 0.85; margin-top: 2px;">Jam operasional shift telah berakhir atau Anda tidak memiliki jadwal bertugas.</div>
+                            </div>
+                        @elseif($absensi && in_array($absensi->status_masuk, ['Izin', 'Cuti', 'Sakit']))
+                            <div style="padding: 1.125rem 1rem; border-radius: 0.75rem; text-align: center; font-weight: 700; font-size: 0.875rem; background: rgba(59, 130, 246, 0.1); border: 1.5px solid rgba(59, 130, 246, 0.35); color: #1d4ed8;">
+                                <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">📋</div>
+                                <div style="font-size: 0.9375rem; color: inherit;">Status Hari Ini: {{ $absensi->status_masuk }}</div>
+                                <div style="font-size: 0.75rem; font-weight: 500; opacity: 0.85; margin-top: 2px;">Pengajuan izin Anda telah disetujui. Presensi tidak diperlukan.</div>
+                            </div>
+                        @elseif(!$absensi)
                             <button 
                                 id="btn-submit-presensi" 
                                 type="button" 
@@ -270,7 +288,7 @@
                                 <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                 <span>Presensi Masuk</span>
                             </button>
-                        @elseif(!$absensi->jam_pulang)
+                        @elseif($absensi->jam_masuk && !$absensi->jam_pulang)
                             <button 
                                 id="btn-submit-presensi" 
                                 type="button" 
@@ -287,7 +305,6 @@
                         @endif
                     </div>
                 </div>
-            @endif
         </div>
 
         <!-- KOLOM KANAN: STATUS BIOMETRIK MASTER, GPS & JADWAL SHIFT -->
@@ -373,33 +390,93 @@
             </div>
 
             <!-- Detail Jadwal & Shift Kerja -->
+            <!-- Detail Jadwal & Shift Kerja Cabang -->
             <div class="presensi-card">
-                <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.9375rem; margin-bottom: 0.75rem;">
-                    <svg style="width: 20px; height: 20px; color: #f59e0b;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <span>Informasi Shift Kerja</span>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.9375rem;">
+                        <svg style="width: 20px; height: 20px; color: #f59e0b;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Shift Kerja Karyawan</span>
+                    </div>
+                    @if($cabang?->is_24_jam)
+                        <span style="padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3);">
+                            🏪 Toko 24 Jam
+                        </span>
+                    @endif
+                </div>
+
+                <div class="info-item-row">
+                    <span style="opacity: 0.65;">Cabang / Penempatan</span>
+                    <strong style="font-weight: 700;">{{ $cabang?->nama_cabang ?? 'Pusat' }}</strong>
                 </div>
 
                 @if($shift)
                     <div>
                         <div class="info-item-row">
-                            <span style="opacity: 0.65;">Nama Shift</span>
-                            <strong style="font-weight: 700; color: #f59e0b;">{{ $shift->nama_shift }}</strong>
+                            <span style="opacity: 0.65;">Shift Terpilih</span>
+                            <div style="text-align: right;">
+                                <strong style="font-weight: 700; color: #f59e0b;">{{ $shift->nama_shift }}</strong>
+                                @if($shift->lintas_hari)
+                                    <span style="display: inline-block; font-size: 0.625rem; font-weight: 700; background: rgba(99, 102, 241, 0.15); color: #4f46e5; padding: 0.1rem 0.35rem; border-radius: 0.25rem;">Lintas Hari</span>
+                                @endif
+                            </div>
                         </div>
                         <div class="info-item-row">
-                            <span style="opacity: 0.65;">Jam Masuk</span>
-                            <strong style="font-weight: 700;">{{ \Carbon\Carbon::parse($shift->jam_masuk)->format('H:i') }} WIB</strong>
+                            <span style="opacity: 0.65;">Jam Operasional</span>
+                            <strong style="font-weight: 700;">{{ \Carbon\Carbon::parse($shift->jam_masuk)->format('H:i') }} - {{ \Carbon\Carbon::parse($shift->jam_pulang)->format('H:i') }} WIB</strong>
                         </div>
                         <div class="info-item-row">
-                            <span style="opacity: 0.65;">Jam Pulang</span>
-                            <strong style="font-weight: 700;">{{ \Carbon\Carbon::parse($shift->jam_pulang)->format('H:i') }} WIB</strong>
-                        </div>
-                        <div class="info-item-row">
-                            <span style="opacity: 0.65;">Toleransi Keterlambatan</span>
+                            <span style="opacity: 0.65;">Toleransi Terlambat</span>
                             <strong style="font-weight: 700;">{{ $shift->toleransi_terlambat_menit ?? 15 }} Menit</strong>
                         </div>
                     </div>
                 @else
-                    <p style="font-size: 0.8125rem; opacity: 0.75; margin: 0;">Anda belum memiliki jadwal shift yang ditentukan. Hubungi Super Admin.</p>
+                    <div style="padding: 0.75rem; border-radius: 0.5rem; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.8125rem; color: #d97706; margin: 0.5rem 0;">
+                        ⚠️ Anda belum memilih shift aktif. Silakan pilih shift yang tersedia di bawah ini.
+                    </div>
+                @endif
+
+                <!-- Pilihan Shift Toko untuk Karyawan -->
+                @if(isset($sedangBekerja) && $sedangBekerja)
+                    <div style="margin-top: 1rem; padding: 0.625rem 0.75rem; border-radius: 0.5rem; background: rgba(239, 68, 68, 0.08); border: 1px dashed rgba(239, 68, 68, 0.3); font-size: 0.75rem; color: #dc2626; display: flex; align-items: center; gap: 0.375rem;">
+                        <span>🔒</span>
+                        <span>Anda sedang bertugas. Pilihan ganti shift dikunci hingga presensi pulang selesai.</span>
+                    </div>
+                @elseif(isset($availableShifts) && $availableShifts->count() > 0)
+                    <div style="margin-top: 1rem; padding-top: 0.875rem; border-top: 1px dashed rgba(156, 163, 175, 0.25);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.625rem;">
+                            <label style="font-size: 0.75rem; font-weight: 700; opacity: 0.85;">Pilihan Shift Cabang Ini:</label>
+                            <a href="{{ url('/karyawan/pilih-shift') }}" style="font-size: 0.75rem; font-weight: 700; color: #f59e0b; text-decoration: underline;">
+                                Semua Shift →
+                            </a>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.375rem;">
+                            @foreach($availableShifts as $s)
+                                @php $isSelected = ($shift && $shift->id === $s->id); @endphp
+                                <button 
+                                    type="button" 
+                                    wire:click="pilihShift('{{ $s->id }}')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="pilihShift"
+                                    style="text-align: left; padding: 0.5rem 0.75rem; border-radius: 0.5rem; font-size: 0.75rem; display: flex; align-items: center; justify-content: space-between; border: 1.5px solid {{ $isSelected ? '#10b981' : 'rgba(156, 163, 175, 0.25)' }}; background: {{ $isSelected ? 'rgba(16, 185, 129, 0.08)' : 'rgba(156, 163, 175, 0.03)' }}; cursor: pointer; transition: all 0.2s;"
+                                >
+                                    <div>
+                                        <strong style="color: {{ $isSelected ? '#059669' : 'inherit' }}; font-weight: 700;">{{ $s->nama_shift }}</strong>
+                                        <div style="opacity: 0.7; font-size: 0.6875rem;">
+                                            {{ \Carbon\Carbon::parse($s->jam_masuk)->format('H:i') }} - {{ \Carbon\Carbon::parse($s->jam_pulang)->format('H:i') }} WIB
+                                            @if($s->lintas_hari)
+                                                <span style="color: #6366f1; font-weight: 600;">(Lintas Hari)</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @if($isSelected)
+                                        <span style="font-size: 0.6875rem; font-weight: 700; color: #059669; background: rgba(16, 185, 129, 0.2); padding: 0.125rem 0.375rem; border-radius: 0.25rem;">Aktif ✓</span>
+                                    @else
+                                        <span style="font-size: 0.6875rem; font-weight: 600; opacity: 0.6;">Pilih</span>
+                                    @endif
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
                 @endif
             </div>
 

@@ -20,9 +20,20 @@ class KaryawanInfoWidget extends Widget
         $user = Auth::user();
         $hariIni = Carbon::today()->toDateString();
 
+        // Sinkronisasi status Libur otomatis jika jam operasional shift telah berakhir
+        app(\App\Services\AbsensiAutoLiburService::class)->syncLibur($hariIni, $user);
+
         $absensiHariIni = Absensi::where('user_id', $user->id)
             ->where('tanggal', $hariIni)
             ->first();
+
+        if (!$absensiHariIni) {
+            $absensiHariIni = Absensi::where('user_id', $user->id)
+                ->where('tanggal', Carbon::yesterday()->toDateString())
+                ->whereNotNull('jam_masuk')
+                ->whereNull('jam_pulang')
+                ->first();
+        }
 
         $jadwal = $user->jadwal;
         $shift = $jadwal?->shift;

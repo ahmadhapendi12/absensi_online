@@ -62,32 +62,31 @@ class JadwalKaryawanForm
                     ->required()
                     ->visibleOn('create'),
 
-                Grid::make(2)
-                    ->schema([
-                        Select::make('shift_id')
-                            ->label('Shift Kerja yang Ditetapkan')
-                            ->relationship('shift', 'nama_shift')
-                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->nama_shift} (" . Carbon::parse($record->jam_masuk)->format('H:i') . ' - ' . Carbon::parse($record->jam_pulang)->format('H:i') . ' WIB)')
-                            ->searchable()
-                            ->preload()
-                            ->helperText('Sistem otomatis menjadwalkan karyawan ini setiap hari kerja sesuai shift yang dipilih.')
-                            ->required(),
+                Select::make('shift_id')
+                    ->label('Shift Kerja yang Ditetapkan')
+                    ->options(function (callable $get, ?JadwalKaryawan $record) {
+                        $userId = $get('user_id') ?? $record?->user_id;
+                        $user = $userId ? \App\Models\User::find($userId) : null;
+                        $cabangId = $user?->cabang_id;
 
-                        Select::make('hari_libur_rutin')
-                            ->label('Hari Libur Rutin Mingguan (Off)')
-                            ->options([
-                                'senin' => 'Senin',
-                                'selasa' => 'Selasa',
-                                'rabu' => 'Rabu',
-                                'kamis' => 'Kamis',
-                                'jumat' => 'Jumat',
-                                'sabtu' => 'Sabtu',
-                                'minggu' => 'Minggu',
-                            ])
-                            ->default('senin')
-                            ->required()
-                            ->helperText('Jatah libur 1 hari seminggu. Pada hari ini karyawan tidak wajib absen dan tidak dihitung alpa.'),
-                    ]),
+                        $query = \App\Models\MasterShift::query();
+                        if ($cabangId) {
+                            $query->where(function ($q) use ($cabangId) {
+                                $q->where('cabang_id', $cabangId)
+                                  ->orWhereNull('cabang_id');
+                            });
+                        }
+
+                        return $query->get()->mapWithKeys(function ($shift) {
+                            $cabangLabel = $shift->cabang ? " [{$shift->cabang->nama_cabang}]" : " [Semua Cabang]";
+                            $jam = Carbon::parse($shift->jam_masuk)->format('H:i') . ' - ' . Carbon::parse($shift->jam_pulang)->format('H:i') . ' WIB';
+                            return [$shift->id => "{$shift->nama_shift} ({$jam}){$cabangLabel}"];
+                        });
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->helperText('Menampilkan shift yang berlaku untuk cabang toko karyawan terkait atau shift global.')
+                    ->required(),
             ]);
     }
 }

@@ -11,7 +11,7 @@ class PengajuanIzin extends Model
 
     protected $fillable = [
         'user_id', 'jenis', 'tanggal_mulai', 'tanggal_selesai',
-        'alasan', 'file_bukti', 'status', 'disetujui_oleh'
+        'alasan', 'file_bukti', 'status', 'disetujui_oleh', 'alasan_penolakan'
     ];
 
     public function user()

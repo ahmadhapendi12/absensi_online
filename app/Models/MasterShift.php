@@ -10,7 +10,7 @@ class MasterShift extends Model
     use HasUuids;
 
     protected $fillable = [
-        'nama_shift', 'jam_masuk', 'jam_pulang', 'buka_absen_menit',
+        'cabang_id', 'nama_shift', 'jam_masuk', 'jam_pulang', 'buka_absen_menit',
         'toleransi_terlambat_menit', 'toleransi_pulang_menit', 'batas_akhir_pulang_menit',
         'lintas_hari'
     ];
@@ -34,6 +34,11 @@ class MasterShift extends Model
     public function getIsLintasHariAttribute(): bool
     {
         return (bool) ($this->lintas_hari || ($this->jam_masuk && $this->jam_pulang && $this->jam_pulang < $this->jam_masuk));
+    }
+
+    public function cabang()
+    {
+        return $this->belongsTo(CabangKantor::class, 'cabang_id');
     }
 
     public function jadwal()

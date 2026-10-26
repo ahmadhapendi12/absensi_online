@@ -179,40 +179,10 @@ class BiometricFaceVerificationService
      */
     protected function validasiBukanHariLibur(User $user, string $hariIni): void
     {
-        $dayMap = [
-            'sunday' => 'minggu',
-            'monday' => 'senin',
-            'tuesday' => 'selasa',
-            'wednesday' => 'rabu',
-            'thursday' => 'kamis',
-            'friday' => 'jumat',
-            'saturday' => 'sabtu',
-        ];
-        $hariIniId = $dayMap[strtolower(Carbon::now()->format('l'))] ?? 'minggu';
-        $jadwal = JadwalKaryawan::with('shift')->where('user_id', $user->id)->first();
-
-        // Cek Libur Rutin Mingguan
-        if ($jadwal && strtolower($jadwal->hari_libur_rutin) === $hariIniId) {
-            throw ValidationException::withMessages([
-                'jadwal' => 'Hari ini merupakan hari libur mingguan Anda (' . ucfirst($jadwal->hari_libur_rutin) . '). Presensi tidak diperlukan.',
-            ]);
-        }
-
-        // Cek Agenda Libur Toko
-        $agendaToko = AgendaLiburToko::where('tanggal', $hariIni)
-            ->where('status', '!=', 'dibatalkan')
-            ->where(function ($q) use ($user) {
-                $q->whereNull('cabang_id')
-                  ->orWhere('cabang_id', $user->cabang_id);
-            })
-            ->first();
-
-        if ($agendaToko && $agendaToko->jenis === 'libur_kios') {
-            throw ValidationException::withMessages([
-                'jadwal' => 'Hari ini outlet libur (' . $agendaToko->nama_agenda . '). Presensi tidak diperlukan.',
-            ]);
-        }
+        // Konsep baru: Tidak ada pemblokiran presensi hari libur karyawan maupun agenda toko (seperti Jumsih/Kamsih).
+        // Agenda toko tetap tersimpan sebagai agenda informasi kegiatan outlet tanpa memblokir absensi karyawan.
     }
+
 
     /**
      * Decode base64 foto kamera dan simpan berkas fisik ke disk public storage.
@@ -233,7 +203,16 @@ class BiometricFaceVerificationService
         }
         $imageBase64 = base64_decode($imageParts[1]);
 
-        $tipeAbsen = Absensi::where('user_id', $user->id)->where('tanggal', $hariIni)->exists() ? 'pulang' : 'masuk';
+        // Deteksi apakah sedang dalam sesi aktif (sudah masuk belum pulang hari ini atau kemarin untuk lintas hari)
+        $kemarin = Carbon::parse($hariIni)->subDay()->toDateString();
+        $activeAbsensi = Absensi::where('user_id', $user->id)
+            ->whereNotNull('jam_masuk')
+            ->whereNull('jam_pulang')
+            ->whereIn('tanggal', [$hariIni, $kemarin])
+            ->latest('tanggal')
+            ->first();
+
+        $tipeAbsen = $activeAbsensi ? 'pulang' : 'masuk';
         $nik = $user->profile?->nik ?? $user->id;
         $fileName = 'presensi_' . $nik . '_' . time() . '_' . $tipeAbsen . '.' . $imageType;
         $savedPath = 'absensi/' . $fileName;
@@ -253,42 +232,163 @@ class BiometricFaceVerificationService
         string $koordinat, 
         string $savedPhotoPath
     ): array {
-        $absensi = Absensi::where('user_id', $user->id)
-            ->where('tanggal', $hariIni)
+        // Cari sesi aktif yang belum pulang (hari ini atau kemarin untuk lintas hari)
+        $kemarin = Carbon::parse($hariIni)->subDay()->toDateString();
+        $activeAbsensi = Absensi::where('user_id', $user->id)
+            ->whereNotNull('jam_masuk')
+            ->whereNull('jam_pulang')
+            ->whereIn('tanggal', [$hariIni, $kemarin])
+            ->latest('tanggal')
             ->first();
 
         $jadwal = JadwalKaryawan::with('shift')->where('user_id', $user->id)->first();
         $shift = $jadwal?->shift;
 
-        // KASUS 1: ABSEN MASUK
-        if (!$absensi) {
+        // KASUS 1: ABSEN MASUK (Belum ada sesi aktif)
+        if (!$activeAbsensi) {
+            // Cek apakah hari ini sudah pernah menyelesaikan absensi masuk & pulang
+            $completedToday = Absensi::where('user_id', $user->id)
+                ->where('tanggal', $hariIni)
+                ->whereNotNull('jam_pulang')
+                ->first();
+
+            if ($completedToday) {
+                Storage::disk('public')->delete($savedPhotoPath);
+                throw ValidationException::withMessages([
+                    'absensi' => 'Presensi masuk dan pulang untuk hari ini telah selesai.',
+                ]);
+            }
+
             $statusMasuk = 'Hadir';
             $menitTerlambat = 0;
+            $isLemburOtomatis = false;
+            $pesanLemburOtomatis = null;
 
             if ($shift) {
-                $jamMasukShift = Carbon::createFromTimeString($shift->jam_masuk);
-                $jamMasukUser = Carbon::createFromTimeString($jamSekarang);
-                $bukaAbsenMenit = (int) ($shift->buka_absen_menit ?? 30);
-                $jamBukaAbsen = $jamMasukShift->copy()->subMinutes($bukaAbsenMenit);
+                $isShift1 = (
+                    stripos($shift->nama_shift, '1') !== false ||
+                    stripos($shift->nama_shift, 'pagi') !== false
+                );
 
-                // Validasi belum buka absen
-                if (!$shift->lintas_hari && $jamMasukUser->lessThan($jamBukaAbsen)) {
-                    Storage::disk('public')->delete($savedPhotoPath);
-                    throw ValidationException::withMessages([
-                        'shift' => 'Presensi masuk belum dibuka. Shift ' . $shift->nama_shift . ' dapat dimulai pada pukul ' . $jamBukaAbsen->format('H:i') . ' WIB.',
-                    ]);
-                }
+                $jamMasukCarbon = Carbon::createFromTimeString($shift->jam_masuk);
+                $jamPulangCarbon = Carbon::createFromTimeString($shift->jam_pulang);
+                $jamUserCarbon = Carbon::createFromTimeString($jamSekarang);
 
-                $toleransi = (int) ($shift->toleransi_terlambat_menit ?? 15);
-                $batasToleransi = $jamMasukShift->copy()->addMinutes($toleransi);
+                $userM = $jamUserCarbon->hour * 60 + $jamUserCarbon->minute;
+                $shiftMasukM = $jamMasukCarbon->hour * 60 + $jamMasukCarbon->minute;
+                $shiftPulangM = $jamPulangCarbon->hour * 60 + $jamPulangCarbon->minute;
 
-                if ($jamMasukUser->greaterThan($batasToleransi)) {
-                    $statusMasuk = 'Terlambat';
-                    // CAST DENGAN TEGAS KE INTEGER (Mencegah PostgreSQL invalid syntax integer "562.1")
-                    $menitTerlambat = (int) round($jamMasukShift->diffInMinutes($jamMasukUser));
+                $bukaAbsenStandarMenit = (int) ($shift->buka_absen_menit ?? 60);
+                $bukaStandarM = $shiftMasukM - $bukaAbsenStandarMenit;
+
+                // Khusus Shift 1: Waktu presensi otomatis dibuka 30 menit sebelum waktu buka absen standar
+                $bukaPresensiM = $isShift1 ? ($bukaStandarM - 30) : $bukaStandarM;
+                $jamBukaPresensiStr = sprintf('%02d:%02d', floor($bukaPresensiM / 60), $bukaPresensiM % 60);
+
+                if ($shift->lintas_hari) {
+                    // Shift lintas hari (misal 23:00 - 07:00)
+                    // Zona di luar jendela: dari jam pulang (07:00) sampai jam buka presensi (22:00)
+                    if ($userM >= $shiftPulangM && $userM < $bukaPresensiM) {
+                        Storage::disk('public')->delete($savedPhotoPath);
+                        throw ValidationException::withMessages([
+                            'shift' => 'Presensi masuk di luar jendela shift Anda. ' . $shift->nama_shift . ' (' . $jamMasukCarbon->format('H:i') . ' - ' . $jamPulangCarbon->format('H:i') . ' WIB) baru bisa absen mulai pukul ' . $jamBukaPresensiStr . ' WIB.',
+                        ]);
+                    }
+
+                    // Tentukan status kehadiran & keterlambatan untuk shift lintas hari
+                    $toleransi = (int) ($shift->toleransi_terlambat_menit ?? 15);
+                    $batasToleransiM = $shiftMasukM + $toleransi;
+
+                    if ($userM >= $bukaPresensiM && $userM <= $batasToleransiM) {
+                        $statusMasuk = 'Hadir';
+                        $menitTerlambat = 0;
+                    } elseif ($userM > $batasToleransiM) {
+                        // Terlambat di malam hari yang sama (misal 23:30)
+                        $statusMasuk = 'Terlambat';
+                        $menitTerlambat = (int) ($userM - $shiftMasukM);
+                    } else {
+                        // Terlambat setelah tengah malam (00:00 s/d jam_pulang)
+                        $statusMasuk = 'Terlambat';
+                        $menitTerlambat = (int) ((1440 - $shiftMasukM) + $userM);
+                    }
                 } else {
-                    $statusMasuk = 'Hadir';
-                    $menitTerlambat = 0;
+                    // Shift normal (non-lintas hari)
+                    // 1. Cek belum buka
+                    if ($userM < $bukaPresensiM) {
+                        Storage::disk('public')->delete($savedPhotoPath);
+                        throw ValidationException::withMessages([
+                            'shift' => 'Presensi masuk belum dibuka. Shift ' . $shift->nama_shift . ' dapat dimulai pada pukul ' . $jamBukaPresensiStr . ' WIB.',
+                        ]);
+                    }
+
+                    // 2. Cek sudah lewat jam kerja (sudah berakhir)
+                    if ($userM >= $shiftPulangM) {
+                        // Catat status kehadiran hari ini sebagai Libur karena tidak hadir selama jam operasional shift
+                        Absensi::updateOrCreate(
+                            ['user_id' => $user->id, 'tanggal' => $hariIni],
+                            [
+                                'jadwal_id' => $jadwal?->id,
+                                'status_masuk' => 'Libur',
+                                'jam_masuk' => null,
+                                'jam_pulang' => null,
+                                'menit_terlambat' => 0,
+                            ]
+                        );
+
+                        Storage::disk('public')->delete($savedPhotoPath);
+                        throw ValidationException::withMessages([
+                            'shift' => 'Jam operasional ' . $shift->nama_shift . ' (' . $jamMasukCarbon->format('H:i') . ' - ' . $jamPulangCarbon->format('H:i') . ' WIB) telah berakhir pada pukul ' . $jamPulangCarbon->format('H:i') . ' WIB. Anda tercatat tidak masuk (Libur) untuk hari ini.',
+                        ]);
+                    }
+
+                    // 3. Cek Lembur Otomatis Khusus Shift 1 jika hadir sebelum waktu mulai shift
+                    if ($isShift1 && $userM < $shiftMasukM) {
+                        $isLemburOtomatis = true;
+
+                        if ($userM < $bukaStandarM) {
+                            // Masuk di jendela 30 menit sebelum buka standar (misal 05:30 - 06:00) -> 1 jam penuh
+                            $jamMulaiLemburStr = sprintf('%02d:%02d:00', floor($bukaStandarM / 60), $bukaStandarM % 60);
+                            $durasiLemburMenit = (int) ($shiftMasukM - $bukaStandarM);
+                            $pesanLemburOtomatis = "Lembur otomatis pra-shift 1 dicatat 1 jam ({$durasiLemburMenit} menit) dari pukul " . Carbon::parse($jamMulaiLemburStr)->format('H:i') . " s/d " . $jamMasukCarbon->format('H:i') . " WIB.";
+                        } else {
+                            // Masuk di antara buka standar dan shift masuk -> riil
+                            $jamMulaiLemburStr = $jamUserCarbon->format('H:i:s');
+                            $durasiLemburMenit = (int) ($shiftMasukM - $userM);
+                            $pesanLemburOtomatis = "Lembur otomatis pra-shift 1 dicatat {$durasiLemburMenit} menit (dari pukul " . $jamUserCarbon->format('H:i') . " s/d " . $jamMasukCarbon->format('H:i') . " WIB).";
+                        }
+
+                        if ($durasiLemburMenit > 0) {
+                            \App\Models\Lembur::updateOrCreate(
+                                [
+                                    'user_id' => $user->id,
+                                    'tanggal' => $hariIni,
+                                    'alasan_lembur' => 'Lembur Otomatis Masuk Awal (Pra-Shift 1)',
+                                ],
+                                [
+                                    'status_pengajuan' => 'Disetujui',
+                                    'jam_mulai_aktual' => $jamMulaiLemburStr,
+                                    'jam_selesai_aktual' => $shift->jam_masuk,
+                                    'durasi_menit' => $durasiLemburMenit,
+                                    'foto_mulai' => $savedPhotoPath,
+                                    'foto_selesai' => $savedPhotoPath,
+                                    'koordinat_mulai' => $koordinat,
+                                    'koordinat_selesai' => $koordinat,
+                                ]
+                            );
+                        }
+                    }
+
+                    // 4. Hitung keterlambatan shift normal
+                    $toleransi = (int) ($shift->toleransi_terlambat_menit ?? 15);
+                    $batasToleransiM = $shiftMasukM + $toleransi;
+
+                    if ($userM > $batasToleransiM) {
+                        $statusMasuk = 'Terlambat';
+                        $menitTerlambat = (int) ($userM - $shiftMasukM);
+                    } else {
+                        $statusMasuk = 'Hadir';
+                        $menitTerlambat = 0;
+                    }
                 }
             }
 
@@ -303,40 +403,56 @@ class BiometricFaceVerificationService
                 'menit_terlambat' => (int) $menitTerlambat,
             ]);
 
+            $message = "Presensi masuk berhasil dicatat ({$statusMasuk}).";
+            if ($isLemburOtomatis && $pesanLemburOtomatis) {
+                $message .= " " . $pesanLemburOtomatis;
+            }
+
             return [
                 'status' => 'success',
                 'action' => 'masuk',
                 'status_masuk' => $statusMasuk,
                 'jam' => Carbon::parse($jamSekarang)->format('H:i') . ' WIB',
-                'message' => "Presensi masuk berhasil dicatat ({$statusMasuk}).",
+                'message' => $message,
                 'record' => $record,
             ];
         }
 
-        // KASUS 2: ABSEN PULANG
-        if ($absensi->jam_pulang) {
-            Storage::disk('public')->delete($savedPhotoPath);
-            throw ValidationException::withMessages([
-                'absensi' => 'Presensi masuk dan pulang untuk hari ini telah selesai.',
-            ]);
-        }
-
-        // Validasi waktu pulang
+        // KASUS 2: ABSEN PULANG (Sesi aktif ada)
         if ($shift) {
-            $jamPulangShift = Carbon::createFromTimeString($shift->jam_pulang);
-            $jamPulangUser = Carbon::createFromTimeString($jamSekarang);
-            $toleransiPulang = (int) ($shift->toleransi_pulang_menit ?? 0);
-            $batasBolehPulang = $jamPulangShift->copy()->subMinutes($toleransiPulang);
+            $jamPulangCarbon = Carbon::createFromTimeString($shift->jam_pulang);
+            $jamMasukCarbon = Carbon::createFromTimeString($shift->jam_masuk);
+            $jamUserCarbon = Carbon::createFromTimeString($jamSekarang);
 
-            if (!$shift->lintas_hari && $jamPulangUser->lessThan($batasBolehPulang)) {
-                Storage::disk('public')->delete($savedPhotoPath);
-                throw ValidationException::withMessages([
-                    'shift' => 'Belum memasuki jam pulang. Jam kerja shift berakhir pada pukul ' . $jamPulangShift->format('H:i') . ' WIB.',
-                ]);
+            $userM = $jamUserCarbon->hour * 60 + $jamUserCarbon->minute;
+            $shiftPulangM = $jamPulangCarbon->hour * 60 + $jamPulangCarbon->minute;
+            $shiftMasukM = $jamMasukCarbon->hour * 60 + $jamMasukCarbon->minute;
+
+            $toleransiPulang = (int) ($shift->toleransi_pulang_menit ?? 0);
+            $batasBolehPulangM = $shiftPulangM - $toleransiPulang;
+
+            if ($shift->lintas_hari) {
+                // Untuk shift lintas hari (misal 23:00 - 07:00):
+                // Jam kerja dari 23:00 malam sampai 07:00 pagi keesokan harinya.
+                // Karyawan belum boleh pulang jika masih di malam hari (>= jam_masuk) atau sebelum jam pulang pagi (< batasBolehPulangM)
+                if ($userM >= $shiftMasukM || $userM < $batasBolehPulangM) {
+                    Storage::disk('public')->delete($savedPhotoPath);
+                    throw ValidationException::withMessages([
+                        'shift' => 'Belum memasuki jam pulang. Jam kerja ' . $shift->nama_shift . ' berakhir pada pukul ' . $jamPulangCarbon->format('H:i') . ' WIB.',
+                    ]);
+                }
+            } else {
+                // Untuk shift normal (misal 07:00 - 15:00 atau 15:00 - 23:00):
+                if ($userM < $batasBolehPulangM) {
+                    Storage::disk('public')->delete($savedPhotoPath);
+                    throw ValidationException::withMessages([
+                        'shift' => 'Belum memasuki jam pulang. Jam kerja ' . $shift->nama_shift . ' berakhir pada pukul ' . $jamPulangCarbon->format('H:i') . ' WIB.',
+                    ]);
+                }
             }
         }
 
-        $absensi->update([
+        $activeAbsensi->update([
             'jam_pulang' => $jamSekarang,
             'koordinat_pulang' => $koordinat,
             'foto_pulang' => $savedPhotoPath,
@@ -347,7 +463,7 @@ class BiometricFaceVerificationService
             'action' => 'pulang',
             'jam' => Carbon::parse($jamSekarang)->format('H:i') . ' WIB',
             'message' => "Presensi pulang berhasil dicatat.",
-            'record' => $absensi,
+            'record' => $activeAbsensi,
         ];
     }
 

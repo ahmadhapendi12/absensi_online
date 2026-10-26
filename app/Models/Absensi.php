@@ -67,7 +67,7 @@ class Absensi extends Model
 
             return 'Sedang Berlangsung';
         }
-        return $this->status_masuk ?? 'Alpha';
+        return $this->status_masuk ?? 'Libur';
     }
 
     public function getFormatJamKerjaAttribute(): string

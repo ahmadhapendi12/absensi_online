@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('foto_pulang')->nullable();
             $table->string('koordinat_masuk', 100)->nullable();
             $table->string('koordinat_pulang', 100)->nullable();
-            $table->enum('status_masuk', ['Hadir', 'Terlambat', 'Izin', 'Sakit', 'Cuti', 'Alpha'])->default('Alpha');
+            $table->enum('status_masuk', ['Hadir', 'Terlambat', 'Izin', 'Libur'])->default('Libur');
             $table->integer('menit_terlambat')->default(0);
             $table->timestamps();
 
