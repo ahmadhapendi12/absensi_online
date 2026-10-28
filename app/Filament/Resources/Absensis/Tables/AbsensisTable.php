@@ -16,6 +16,9 @@ class AbsensisTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->filtersFormColumns(2)
+            ->filtersFormWidth(\Filament\Support\Enums\Width::TwoExtraLarge)
+            ->filtersFormMaxHeight('480px')
             ->columns([
                 TextColumn::make('tanggal')
                     ->label('Tanggal')
@@ -108,6 +111,8 @@ class AbsensisTable
                         'Hadir' => 'Hadir / Tepat Waktu',
                         'Terlambat' => 'Terlambat',
                         'Izin' => 'Izin',
+                        'Sakit' => 'Sakit',
+                        'Cuti' => 'Cuti',
                         'Libur' => 'Libur',
                     ])
                     ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data) {
@@ -124,10 +129,96 @@ class AbsensisTable
                                       ->orWhereRaw("jam_masuk IS NOT NULL AND jam_pulang IS NULL AND tanggal = CURRENT_DATE");
                                 });
                         }
+                        if (($data['value'] ?? null) === 'Hadir') {
+                            return $query->whereIn('status_masuk', ['Hadir', 'Tepat Waktu']);
+                        }
                         if (!empty($data['value'])) {
                             return $query->where('status_masuk', $data['value']);
                         }
                         return $query;
+                    }),
+
+                SelectFilter::make('cabang_id')
+                    ->label('Cabang / Outlet')
+                    ->options(fn () => \App\Models\CabangKantor::pluck('nama_cabang', 'id')->toArray())
+                    ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data) {
+                        $value = $data['value'] ?? null;
+                        if (!$value) return $query;
+                        return $query->whereHas('user', fn ($q) => $q->where('cabang_id', $value));
+                    }),
+
+                SelectFilter::make('nama_shift')
+                    ->label('Shift Kerja')
+                    ->options(function () {
+                        return \App\Models\MasterShift::select('nama_shift')
+                            ->distinct()
+                            ->orderBy('nama_shift')
+                            ->pluck('nama_shift', 'nama_shift')
+                            ->toArray();
+                    })
+                    ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data) {
+                        $value = $data['value'] ?? null;
+                        if (!$value) return $query;
+                        return $query->whereHas('jadwal.shift', fn ($q) => $q->where('nama_shift', $value));
+                    }),
+
+                SelectFilter::make('user_id')
+                    ->label('Karyawan (Per Orang)')
+                    ->searchable()
+                    ->options(fn () => \App\Models\User::role('karyawan')->orderBy('name')->pluck('name', 'id')->toArray())
+                    ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data) {
+                        $value = $data['value'] ?? null;
+                        if (!$value) return $query;
+                        return $query->where('user_id', $value);
+                    }),
+
+                \Filament\Tables\Filters\Filter::make('periode')
+                    ->form([
+                        \Filament\Forms\Components\Select::make('bulan')
+                            ->label('Bulan')
+                            ->options([
+                                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+                            ])
+                            ->placeholder('Semua Bulan'),
+                        \Filament\Forms\Components\Select::make('tahun')
+                            ->label('Tahun')
+                            ->options(function () {
+                                $now = now()->year;
+                                return [
+                                    $now => (string) $now,
+                                    $now - 1 => (string) ($now - 1),
+                                ];
+                            })
+                            ->default(now()->year),
+                    ])
+                    ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data) {
+                        $bulan = $data['bulan'] ?? null;
+                        $tahun = $data['tahun'] ?? null;
+
+                        if ($bulan && $tahun) {
+                            $start = \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->startOfMonth();
+                            $end = $start->copy()->endOfMonth();
+                            return $query->whereBetween('tanggal', [$start->toDateString(), $end->toDateString()]);
+                        }
+
+                        if ($tahun) {
+                            return $query->whereYear('tanggal', $tahun);
+                        }
+
+                        return $query;
+                    })
+                    ->indicateUsing(function (array $data): ?string {
+                        $bulan = $data['bulan'] ?? null;
+                        $tahun = $data['tahun'] ?? null;
+                        if ($bulan && $tahun) {
+                            return 'Periode: ' . \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->translatedFormat('F Y');
+                        }
+                        if ($tahun) {
+                            return "Tahun: {$tahun}";
+                        }
+                        return null;
                     }),
             ])
             ->headerActions([
@@ -136,7 +227,7 @@ class AbsensisTable
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('danger')
                     ->modalHeading('Export Rekapitulasi Presensi (PDF)')
-                    ->modalDescription('Pilih periode, cabang, dan kriteria data presensi yang ingin diunduh ke format PDF.')
+                    ->modalDescription('Pilih periode, cabang, shift, dan kriteria data presensi yang ingin diunduh ke format PDF.')
                     ->modalSubmitActionLabel('Unduh Laporan PDF')
                     ->schema([
                         \Filament\Forms\Components\Select::make('tipe_periode')
@@ -176,17 +267,63 @@ class AbsensisTable
                         \Filament\Forms\Components\Select::make('cabang_id')
                             ->label('Cabang Toko')
                             ->options(['semua' => 'Seluruh Cabang (Semua Outlet)'] + \App\Models\CabangKantor::pluck('nama_cabang', 'id')->toArray())
-                            ->default('semua'),
+                            ->default('semua')
+                            ->live(),
                         \Filament\Forms\Components\Select::make('status_masuk')
                             ->label('Filter Status Presensi')
                             ->options([
                                 'semua' => 'Semua Status Kehadiran',
-                                'Tepat Waktu' => 'Hadir Tepat Waktu',
+                                'Hadir' => 'Hadir Tepat Waktu',
                                 'Terlambat' => 'Terlambat Saja',
                                 'Izin' => 'Izin',
                                 'Sakit' => 'Sakit',
                                 'Cuti' => 'Cuti',
+                                'Libur' => 'Libur',
+                                'sedang_berlangsung' => 'Sedang Berlangsung',
+                                'tidak_absen_pulang' => 'Tidak Absen Pulang',
                             ])
+                            ->default('semua'),
+                        \Filament\Forms\Components\Select::make('shift_nama')
+                            ->label('Filter Shift Kerja')
+                            ->options(function (callable $get) {
+                                $cabangId = $get('cabang_id');
+
+                                // Jika user memilih cabang spesifik: tampilkan shift cabang tersebut beserta jam kerjanya
+                                if ($cabangId && $cabangId !== 'semua') {
+                                    $shifts = \App\Models\MasterShift::where('cabang_id', $cabangId)
+                                        ->orderBy('nama_shift')
+                                        ->get();
+
+                                    $options = ['semua' => 'Semua Shift di Cabang Ini'];
+                                    foreach ($shifts as $s) {
+                                        $masuk = substr($s->jam_masuk, 0, 5);
+                                        $pulang = substr($s->jam_pulang, 0, 5);
+                                        $options[$s->nama_shift] = "{$s->nama_shift} ({$masuk} - {$pulang} WIB)";
+                                    }
+                                    return $options;
+                                }
+
+                                // Jika semua cabang: tampilkan pilihan shift unik tanpa duplikasi (Shift 1, Shift 2, Shift 3 dst.)
+                                $distinctShifts = \App\Models\MasterShift::select('nama_shift')
+                                    ->distinct()
+                                    ->orderBy('nama_shift')
+                                    ->pluck('nama_shift', 'nama_shift')
+                                    ->toArray();
+
+                                return ['semua' => 'Semua Shift (Seluruh Cabang)'] + $distinctShifts;
+                            })
+                            ->default('semua'),
+                        \Filament\Forms\Components\Select::make('user_id')
+                            ->label('Filter Karyawan (Per Orang)')
+                            ->options(function (callable $get) {
+                                $cabangId = $get('cabang_id');
+                                $query = \App\Models\User::role('karyawan')->orderBy('name');
+                                if ($cabangId && $cabangId !== 'semua') {
+                                    $query->where('cabang_id', $cabangId);
+                                }
+                                return ['semua' => 'Semua Karyawan'] + $query->pluck('name', 'id')->toArray();
+                            })
+                            ->searchable()
                             ->default('semua'),
                     ])
                     ->action(function (array $data) {
@@ -198,6 +335,9 @@ class AbsensisTable
                             'tanggal_selesai' => $data['tanggal_selesai'] ?? null,
                             'cabang_id' => $data['cabang_id'] ?? 'semua',
                             'status_masuk' => $data['status_masuk'] ?? 'semua',
+                            'shift_id' => $data['shift_nama'] ?? 'semua',
+                            'shift_nama' => $data['shift_nama'] ?? 'semua',
+                            'user_id' => $data['user_id'] ?? 'semua',
                         ]);
                         return redirect()->to(route('laporan.export-pdf') . '?' . $params);
                     }),

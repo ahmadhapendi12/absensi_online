@@ -29,6 +29,8 @@ class KaryawanPanelProvider extends PanelProvider
                 'primary' => Color::Amber,
             ])
             ->sidebarCollapsibleOnDesktop()
+            ->sidebarWidth('17rem')
+            ->collapsedSidebarWidth('4.5rem')
             ->maxContentWidth('7xl')
             ->navigationGroups([
                 'Menu Utama',
@@ -45,15 +47,43 @@ class KaryawanPanelProvider extends PanelProvider
             ->renderHook(
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 function (): \Illuminate\Support\HtmlString {
+                    $html = '';
+
+                    // Inject app.css from Vite manifest
                     $manifestPath = public_path('build/manifest.json');
                     if (file_exists($manifestPath)) {
                         $manifest = json_decode(file_get_contents($manifestPath), true);
                         $cssFile = $manifest['resources/css/app.css']['file'] ?? null;
                         if ($cssFile) {
-                            return new \Illuminate\Support\HtmlString('<link rel="stylesheet" href="/build/' . $cssFile . '">');
+                            $html .= '<link rel="stylesheet" href="/build/' . $cssFile . '">';
                         }
                     }
-                    return new \Illuminate\Support\HtmlString('');
+
+                    // Sidebar collapsed width fix + Karyawan panel theme
+                    $html .= '<style>
+                        /* ==========================================
+                           SIDEBAR COLLAPSED WIDTH
+                           ========================================== */
+                        @media (min-width: 1024px) {
+                            /* Sidebar terbuka: 17rem */
+                            .fi-sidebar.fi-sidebar-open {
+                                width: 17rem !important;
+                                min-width: 17rem !important;
+                                transition: width 0.2s ease, min-width 0.2s ease !important;
+                            }
+                            /* Sidebar tertutup / collapsed: 4.5rem (icon only) */
+                            .fi-sidebar:not(.fi-sidebar-open) {
+                                width: 4.5rem !important;
+                                min-width: 4.5rem !important;
+                                transition: width 0.2s ease, min-width 0.2s ease !important;
+                            }
+                            .fi-main-ctn {
+                                transition: margin-inline-start 0.2s ease !important;
+                            }
+                        }
+                    </style>';
+
+                    return new \Illuminate\Support\HtmlString($html);
                 }
             )
             ->renderHook(

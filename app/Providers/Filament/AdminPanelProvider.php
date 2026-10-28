@@ -43,6 +43,8 @@ class AdminPanelProvider extends PanelProvider
                 'success' => Color::Emerald,
             ])
             ->sidebarCollapsibleOnDesktop()
+            ->sidebarWidth('19rem')
+            ->collapsedSidebarWidth('5.5rem')
             ->maxContentWidth('full')
             ->darkMode()
             ->navigationGroups([
@@ -498,11 +500,15 @@ class AdminPanelProvider extends PanelProvider
                             border-radius: 1.25rem !important;
                             overflow: hidden !important;
                             box-shadow: -8px 0 35px rgba(234, 88, 12, 0.22) !important;
+                            max-height: 90vh !important;
+                            display: flex !important;
+                            flex-direction: column !important;
                         }
                         .fi-modal-header {
                             background: linear-gradient(135deg, #b91c1c 0%, #ea580c 100%) !important;
                             color: #ffffff !important;
                             padding: 1.25rem !important;
+                            flex-shrink: 0 !important;
                         }
                         .fi-modal-heading,
                         .fi-modal-header button,
@@ -513,20 +519,29 @@ class AdminPanelProvider extends PanelProvider
                         }
                         .fi-modal-content {
                             background: #fffaf5 !important;
+                            overflow-y: auto !important;
+                            flex: 1 1 auto !important;
+                            max-height: calc(90vh - 130px) !important;
                         }
                         .fi-modal-footer {
                             background: #fff7ed !important;
                             border-top: 1px solid #fed7aa !important;
+                            flex-shrink: 0 !important;
                         }
 
-                        /* Tables */
+                        /* Tables - Mengizinkan Popover/Dropdown tembus tanpa terpotong di batas bawah */
                         .fi-ta-ctn {
                             background: #ffffff !important;
                             border-radius: 1.25rem !important;
                             border: 1px solid #fed7aa !important;
                             border-top: 4px solid #dc2626 !important;
                             box-shadow: 0 4px 18px rgba(220, 38, 38, 0.08) !important;
-                            overflow: hidden !important;
+                            overflow: visible !important;
+                            position: relative !important;
+                        }
+                        .fi-ta-content {
+                            overflow-x: auto !important;
+                            border-radius: 0 0 1.25rem 1.25rem !important;
                         }
                         .fi-ta-header-cell {
                             background: linear-gradient(90deg, #fef2f2 0%, #fff7ed 100%) !important;
@@ -574,13 +589,22 @@ class AdminPanelProvider extends PanelProvider
                         .fi-badge-color-warning { background: #fef3c7 !important; color: #92400e !important; border: 1px solid #fde68a !important; font-weight: 700 !important; }
                         .fi-badge-color-info { background: #ffedd5 !important; color: #9a3412 !important; border: 1px solid #fed7aa !important; font-weight: 700 !important; }
 
-                        /* Dropdowns */
+                        /* Dropdowns & Popover Filters */
                         .fi-dropdown-panel {
                             border-radius: 1rem !important;
                             border: 1px solid #fed7aa !important;
-                            box-shadow: 0 10px 30px rgba(234, 88, 12, 0.15) !important;
+                            box-shadow: 0 16px 45px rgba(234, 88, 12, 0.25) !important;
                             background: #ffffff !important;
-                            overflow: hidden !important;
+                            overflow-y: auto !important;
+                            max-height: 80vh !important;
+                            z-index: 99999 !important;
+                        }
+                        .fi-ta-filters-form,
+                        .fi-dropdown-panel .fi-ta-filters-form,
+                        .fi-dropdown-panel form {
+                            max-height: 70vh !important;
+                            overflow-y: auto !important;
+                            padding-right: 4px !important;
                         }
                         .fi-dropdown-list-item:hover {
                             background: #fff7ed !important;

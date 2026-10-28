@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Absensi;
 use App\Models\CabangKantor;
+use App\Models\MasterShift;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -25,6 +26,7 @@ class LaporanPresensiController extends Controller
         $cabangId = $request->input('cabang_id');
         $statusMasuk = $request->input('status_masuk'); // 'semua' or specific status
         $userId = $request->input('user_id');
+        $shiftParam = $request->input('shift_nama', $request->input('shift_id', 'semua')); // filter shift kerja
 
         // Jika yang request karyawan biasa, kunci user_id ke dirinya sendiri
         if ($user && $user->hasRole('karyawan')) {
@@ -76,17 +78,44 @@ class LaporanPresensiController extends Controller
         }
 
         if ($statusMasuk && $statusMasuk !== 'semua') {
-            $query->where('status_masuk', $statusMasuk);
-            $labelStatus = $statusMasuk;
+            if ($statusMasuk === 'Hadir' || $statusMasuk === 'Tepat Waktu') {
+                $query->whereIn('status_masuk', ['Hadir', 'Tepat Waktu']);
+                $labelStatus = 'Hadir / Tepat Waktu';
+            } elseif ($statusMasuk === 'sedang_berlangsung') {
+                $query->whereNotNull('jam_masuk')
+                    ->whereNull('jam_pulang')
+                    ->whereDate('tanggal', now()->toDateString());
+                $labelStatus = 'Sedang Berlangsung';
+            } elseif ($statusMasuk === 'tidak_absen_pulang') {
+                $query->whereNotNull('jam_masuk')
+                    ->whereNull('jam_pulang')
+                    ->whereDate('tanggal', '<', now()->toDateString());
+                $labelStatus = 'Tidak Absen Pulang';
+            } else {
+                $query->where('status_masuk', $statusMasuk);
+                $labelStatus = $statusMasuk;
+            }
         } else {
             $labelStatus = 'Semua Status';
+        }
+
+        // Filter berdasarkan Shift Kerja (Mendukung nama shift maupun ID)
+        if ($shiftParam && $shiftParam !== 'semua') {
+            $query->whereHas('jadwal.shift', function ($q) use ($shiftParam) {
+                $q->where('nama_shift', $shiftParam)
+                  ->orWhere('id', $shiftParam);
+            });
+            $shiftObj = MasterShift::where('nama_shift', $shiftParam)->first() ?? MasterShift::find($shiftParam);
+            $labelShift = $shiftObj ? $shiftObj->nama_shift : $shiftParam;
+        } else {
+            $labelShift = 'Semua Shift';
         }
 
         $dataAbsensi = $query->get();
 
         // Hitung Ringkasan Statistik
         $totalRecords = $dataAbsensi->count();
-        $totalTepatWaktu = $dataAbsensi->where('status_masuk', 'Tepat Waktu')->count();
+        $totalTepatWaktu = $dataAbsensi->filter(fn ($item) => in_array($item->status_masuk, ['Hadir', 'Tepat Waktu']) && $item->status_display !== 'Tidak Absen Pulang')->count();
         $totalTerlambat = $dataAbsensi->where('status_masuk', 'Terlambat')->count();
         $totalIzin = $dataAbsensi->where('status_masuk', 'Izin')->count();
         $totalSakit = $dataAbsensi->where('status_masuk', 'Sakit')->count();
@@ -109,6 +138,12 @@ class LaporanPresensiController extends Controller
             'persen_kehadiran' => $persenKehadiran,
         ];
 
+        // Siapkan Logo Lazatto yang sudah dioptimasi (68KB) untuk rendering DomPDF instan & super cepat
+        $logoPath = file_exists(public_path('lazatto-logo-sm.png')) 
+            ? public_path('lazatto-logo-sm.png') 
+            : public_path('lazatto-logo.png');
+        $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : null;
+
         // Cetak PDF
         $pdf = Pdf::loadView('pdf.laporan-rekap-presensi', compact(
             'dataAbsensi',
@@ -117,8 +152,10 @@ class LaporanPresensiController extends Controller
             'labelCabang',
             'labelKaryawan',
             'labelStatus',
+            'labelShift',
             'startDate',
-            'endDate'
+            'endDate',
+            'logoBase64'
         ))->setPaper('a4', 'landscape');
 
         $filename = 'Rekap_Presensi_Lazatto_' . str_replace(' ', '_', $labelPeriode) . '.pdf';
@@ -130,3 +167,4 @@ class LaporanPresensiController extends Controller
         return $pdf->download($filename);
     }
 }
+

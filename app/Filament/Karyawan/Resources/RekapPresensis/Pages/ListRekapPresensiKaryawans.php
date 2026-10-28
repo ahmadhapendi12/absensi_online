@@ -3,10 +3,12 @@
 namespace App\Filament\Karyawan\Resources\RekapPresensis\Pages;
 
 use App\Filament\Karyawan\Resources\RekapPresensis\RekapPresensiKaryawanResource;
+use App\Models\MasterShift;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Support\Facades\Auth;
 
 class ListRekapPresensiKaryawans extends ListRecords
 {
@@ -20,7 +22,7 @@ class ListRekapPresensiKaryawans extends ListRecords
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('primary')
                 ->modalHeading('Unduh Rekap Presensi Mandiri (PDF)')
-                ->modalDescription('Pilih periode tanggal atau bulan yang ingin diunduh ke format dokumen PDF.')
+                ->modalDescription('Pilih periode tanggal, shift kerja, dan status kehadiran yang ingin diunduh ke format dokumen PDF.')
                 ->modalSubmitActionLabel('Unduh Dokumen PDF')
                 ->form([
                     Select::make('tipe_periode')
@@ -69,6 +71,30 @@ class ListRekapPresensiKaryawans extends ListRecords
                         ->default(now()->toDateString())
                         ->visible(fn (callable $get) => $get('tipe_periode') === 'custom')
                         ->required(fn (callable $get) => $get('tipe_periode') === 'custom'),
+
+                    Select::make('shift_id')
+                        ->label('Filter Shift Kerja')
+                        ->options(function () {
+                            $userId = Auth::id();
+                            $shifts = MasterShift::whereHas('jadwal', function ($q) use ($userId) {
+                                $q->where('user_id', $userId);
+                            })->pluck('nama_shift', 'id')->toArray();
+                            return ['semua' => 'Semua Shift'] + $shifts;
+                        })
+                        ->default('semua'),
+
+                    Select::make('status_masuk')
+                        ->label('Filter Status Kehadiran')
+                        ->options([
+                            'semua' => 'Semua Status',
+                            'Hadir' => 'Hadir Tepat Waktu',
+                            'Terlambat' => 'Terlambat',
+                            'Izin' => 'Izin',
+                            'Sakit' => 'Sakit',
+                            'Cuti' => 'Cuti',
+                            'Libur' => 'Libur',
+                        ])
+                        ->default('semua'),
                 ])
                 ->action(function (array $data) {
                     $params = [
@@ -77,6 +103,8 @@ class ListRekapPresensiKaryawans extends ListRecords
                         'tahun' => $data['tahun'] ?? now()->year,
                         'tanggal_mulai' => $data['tanggal_mulai'] ?? null,
                         'tanggal_selesai' => $data['tanggal_selesai'] ?? null,
+                        'shift_id' => $data['shift_id'] ?? 'semua',
+                        'status_masuk' => $data['status_masuk'] ?? 'semua',
                     ];
 
                     $url = route('laporan.export-pdf', array_filter($params));
